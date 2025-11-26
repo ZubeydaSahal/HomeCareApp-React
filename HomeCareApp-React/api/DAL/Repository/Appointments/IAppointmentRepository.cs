@@ -1,0 +1,18 @@
+using HomeCareApp.Models;
+using System.Collections.Generic;
+using System.Threading.Tasks;
+
+namespace HomeCareApp.DAL.Repository.Appointments
+{
+    public interface IAppointmentRepository
+    {
+        Task<List<Appointment>> GetAllAsync();
+        Task<Appointment?> GetByIdAsync(int id);
+        
+        Task<List<Appointment>> GetByClientIdAsync(string clientId);
+        Task CreateAsync(Appointment appointment);
+        Task UpdateAsync(Appointment appointment);
+        Task DeleteAsync(int id);
+        Task<bool> ExistsAsync(int id);
+    }
+}

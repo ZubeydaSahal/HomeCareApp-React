@@ -1,0 +1,344 @@
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
+using HomeCareApp.Models;
+using HomeCareApp.Service.Availabilitys;
+using AppUser = HomeCareApp.Models.User;
+
+namespace HomeCareApp.Controllers
+{
+    [Authorize]
+    public class AvailabilityController : Controller
+    {
+        private readonly IAvailabilityService _availabilityService;
+        private readonly ILogger<AvailabilityController> _logger;
+        private readonly UserManager<AppUser> _userManager;
+
+        public AvailabilityController(
+            IAvailabilityService availabilityService,
+            ILogger<AvailabilityController> logger,
+            UserManager<AppUser> userManager)
+        {
+            _availabilityService = availabilityService;
+            _logger = logger;
+            _userManager = userManager;
+        }
+
+        // -----------------------------
+        // INDEX - show all availabilities
+        // -----------------------------
+        [Authorize(Roles = "Personnel, Admin")]
+        public async Task<IActionResult> Index()
+        {
+            try
+            {
+                _logger.LogInformation("Availability.Index called by {User}", User.Identity?.Name);
+
+                var availabilities = await _availabilityService.GetAllAsync() ?? new List<Availability>();
+                _logger.LogInformation("Loaded {Count} availabilities", availabilities.Count);
+
+                return View(availabilities);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error in Availability.Index");
+                TempData["Error"] = "Unexpected error occurred.";
+                return RedirectToAction("Error", "Home");
+            }
+        }
+
+        // -----------------------------
+        // CREATE (GET) - show form
+        // -----------------------------
+        [Authorize(Roles = "Personnel, Admin")]
+        public IActionResult Create()
+        {
+            try
+            {
+                _logger.LogInformation("Availability.Create(GET) opened by {User}", User.Identity?.Name);
+                return View();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error loading Availability.Create(GET)");
+                TempData["Error"] = "Unexpected error occurred.";
+                return RedirectToAction(nameof(Index));
+            }
+        }
+
+        // -----------------------------
+        // CREATE (POST) - create new availability
+        // -----------------------------
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Personnel,Admin")]
+        public async Task<IActionResult> Create(Availability availability)
+        {
+            try
+            {
+                _logger.LogInformation("Availability.Create(POST) called by {User}", User.Identity?.Name);
+
+                var userId = _userManager.GetUserId(User);
+                if (string.IsNullOrEmpty(userId))
+                {
+                    _logger.LogWarning("Create failed: No logged-in user");
+                    ModelState.AddModelError("", "Ingen innlogget bruker.");
+                    return View(availability);
+                }
+
+                availability.PersonnelId = userId;
+                ModelState.Remove(nameof(availability.PersonnelId));
+
+                if (!ModelState.IsValid)
+                {
+                    _logger.LogWarning("Create model invalid: {Errors}",
+                        string.Join(", ", ModelState.Values
+                            .SelectMany(v => v.Errors)
+                            .Select(e => e.ErrorMessage)));
+
+                    return View(availability);
+                }
+
+                var user = await _userManager.FindByIdAsync(userId);
+                if (user == null)
+                {
+                    _logger.LogWarning("Create failed: user {UserId} not found", userId);
+                    ModelState.AddModelError("", $"Innlogget bruker finnes ikke (Id={userId}).");
+                    return View(availability);
+                }
+
+                await _availabilityService.AddAsync(availability);
+                _logger.LogInformation("Availability {Id} created by {User}", availability.Id, userId);
+
+                TempData["Success"] = "Availability created.";
+                return RedirectToAction(nameof(Index));
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error creating Availability");
+                TempData["Error"] = "Could not create availability.";
+                return RedirectToAction(nameof(Index));
+            }
+        }
+
+        // -----------------------------
+        // EDIT (GET)
+        // -----------------------------
+        [Authorize(Roles = "Personnel,Admin")]
+        public async Task<IActionResult> Edit(int id)
+        {
+            try
+            {
+                _logger.LogInformation("Availability.Edit(GET) for Id {Id} by {User}", id, User.Identity?.Name);
+
+                var entity = await _availabilityService.GetByIdAsync(id);
+                if (entity == null)
+                {
+                    _logger.LogWarning("Availability.Edit(GET): NotFound Id {Id}", id);
+                    return NotFound();
+                }
+
+                var userId = _userManager.GetUserId(User);
+                var isAdmin = User.IsInRole("Admin");
+
+                if (!isAdmin && entity.PersonnelId != userId)
+                {
+                    _logger.LogWarning("User {User} attempted to edit availability they do not own: Id {Id}", userId, id);
+                    return Forbid();
+                }
+
+                if (entity.Appointment != null)
+                {
+                    _logger.LogWarning("Attempt to edit booked availability {Id}", id);
+                    TempData["Error"] = "This availability is already booked and cannot be edited.";
+                    return RedirectToAction(nameof(Index));
+                }
+
+                return View(entity);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error in Availability.Edit(GET) Id {Id}", id);
+                TempData["Error"] = "Could not load edit page.";
+                return RedirectToAction(nameof(Index));
+            }
+        }
+
+        // -----------------------------
+        // EDIT (POST)
+        // -----------------------------
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Personnel,Admin")]
+        public async Task<IActionResult> Edit(int id, Availability model)
+        {
+            try
+            {
+                _logger.LogInformation("Availability.Edit(POST) Id {Id} by {User}", id, User.Identity?.Name);
+
+                if (id != model.Id)
+                {
+                    _logger.LogWarning("BadRequest: URL Id {Id} != model.Id {ModelId}", id, model.Id);
+                    return BadRequest();
+                }
+
+                var entity = await _availabilityService.GetByIdAsync(id);
+                if (entity == null)
+                {
+                    _logger.LogWarning("Availability.Edit(POST): NotFound Id {Id}", id);
+                    return NotFound();
+                }
+
+                var userId = _userManager.GetUserId(User);
+                var isAdmin = User.IsInRole("Admin");
+
+                if (!isAdmin && entity.PersonnelId != userId)
+                {
+                    _logger.LogWarning("User {User} tried editing availability Id {Id} they do not own", userId, id);
+                    return Forbid();
+                }
+
+                if (entity.Appointment != null)
+                {
+                    _logger.LogWarning("Attempt to edit booked availability Id {Id}", id);
+                    TempData["Error"] = "This availability is already booked and cannot be edited.";
+                    return RedirectToAction(nameof(Index));
+                }
+
+                if (model.StartTime >= model.EndTime)
+                {
+                    _logger.LogWarning("Invalid time range on Edit for Id {Id}", id);
+                    ModelState.AddModelError(nameof(model.EndTime), "End time must be after start time.");
+                    return View(model);
+                }
+
+                _logger.LogInformation(
+                    "Edit model received for Id {Id}: Date={Date}, Start={Start}, End={End}, Notes={Notes}",
+                    id, model.Date, model.StartTime, model.EndTime, model.Notes
+                );
+
+                ModelState.Remove(nameof(model.PersonnelId));
+
+                if (!ModelState.IsValid)
+                {
+                    _logger.LogWarning("Validation failed on Edit for Id {Id}: {Errors}",
+                       string.Join(", ", ModelState.Values
+                           .SelectMany(v => v.Errors)
+                           .Select(e => e.ErrorMessage)));
+
+                    return View(model);
+                }
+
+                entity.Date = model.Date;
+                entity.StartTime = model.StartTime;
+                entity.EndTime = model.EndTime;
+                entity.Notes = model.Notes;
+
+                await _availabilityService.UpdateAsync(entity);
+
+                _logger.LogInformation("Availability {Id} updated successfully by {User}", entity.Id, userId);
+
+                TempData["Success"] = "Availability updated.";
+                return RedirectToAction(nameof(Index));
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error updating Availability Id {Id}", id);
+                TempData["Error"] = "Could not update availability.";
+                return RedirectToAction(nameof(Index));
+            }
+        }
+
+        // -----------------------------
+        // DELETE (GET)
+        // -----------------------------
+        [Authorize(Roles = "Personnel,Admin")]
+        public async Task<IActionResult> Delete(int id)
+        {
+            try
+            {
+                _logger.LogInformation("Availability.Delete(GET) Id {Id} by {User}", id, User.Identity?.Name);
+
+                var entity = await _availabilityService.GetByIdAsync(id);
+                if (entity == null)
+                {
+                    _logger.LogWarning("Availability.Delete(GET): NotFound Id {Id}", id);
+                    return NotFound();
+                }
+
+                var userId = _userManager.GetUserId(User);
+                var isAdmin = User.IsInRole("Admin");
+
+                if (!isAdmin && entity.PersonnelId != userId)
+                {
+                    _logger.LogWarning("User {User} attempted to delete availability Id {Id} they do not own", userId, id);
+                    return Forbid();
+                }
+
+                if (entity.Appointment != null)
+                {
+                    _logger.LogWarning("Attempt to delete booked availability Id {Id}", id);
+                    TempData["Error"] = "This availability is already booked and cannot be deleted.";
+                    return RedirectToAction(nameof(Index));
+                }
+
+                return View(entity);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error loading Availability.Delete(GET) Id {Id}", id);
+                TempData["Error"] = "Could not load delete page.";
+                return RedirectToAction(nameof(Index));
+            }
+        }
+
+        // -----------------------------
+        // DELETE (POST)
+        // -----------------------------
+        [HttpPost, ActionName("Delete")]
+        [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Personnel,Admin")]
+        public async Task<IActionResult> DeleteConfirmed(int id)
+        {
+            try
+            {
+                _logger.LogInformation("Availability.DeleteConfirmed(POST) Id {Id} by {User}", id, User.Identity?.Name);
+
+                var entity = await _availabilityService.GetByIdAsync(id);
+                if (entity == null)
+                {
+                    _logger.LogWarning("Availability.DeleteConfirmed: NotFound Id {Id}", id);
+                    return NotFound();
+                }
+
+                var userId = _userManager.GetUserId(User);
+                var isAdmin = User.IsInRole("Admin");
+
+                if (!isAdmin && entity.PersonnelId != userId)
+                {
+                    _logger.LogWarning("User {User} tried to delete availability Id {Id} they do not own", userId, id);
+                    return Forbid();
+                }
+
+                if (entity.Appointment != null)
+                {
+                    _logger.LogWarning("Attempted to delete booked availability Id {Id}", id);
+                    TempData["Error"] = "This availability is already booked and cannot be deleted.";
+                    return RedirectToAction(nameof(Index));
+                }
+
+                await _availabilityService.DeleteAsync(id);
+                _logger.LogInformation("Availability {Id} deleted by {User}", id, userId);
+
+                TempData["Success"] = "Availability deleted.";
+                return RedirectToAction(nameof(Index));
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error deleting Availability Id {Id}", id);
+                TempData["Error"] = "Could not delete availability.";
+                return RedirectToAction(nameof(Index));
+            }
+        }
+    }
+}
