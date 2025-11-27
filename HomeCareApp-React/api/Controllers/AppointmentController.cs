@@ -8,11 +8,13 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Serilog; 
 using AppUser = HomeCareApp.Models.User;
+using HomeCareApp.DTOs;
 
 namespace HomeCareApp.Controllers
 {
+    
     [Authorize]
-    public class AppointmentController : Controller
+    public class AppointmentController : ControllerBase
     {
         private readonly IAppointmentService _appointmentService;
         private readonly IAvailabilityService _availabilityService;

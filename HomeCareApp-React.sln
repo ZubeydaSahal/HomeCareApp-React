@@ -1,0 +1,29 @@
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.5.2.0
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "HomeCareApp-React", "HomeCareApp-React", "{F519AD43-86EC-81B6-AC31-BA6E19E12C7E}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "api", "HomeCareApp-React\api\api.csproj", "{0CBAEE18-BC6D-BCCF-15EE-757E47D6DD4A}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{0CBAEE18-BC6D-BCCF-15EE-757E47D6DD4A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0CBAEE18-BC6D-BCCF-15EE-757E47D6DD4A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0CBAEE18-BC6D-BCCF-15EE-757E47D6DD4A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0CBAEE18-BC6D-BCCF-15EE-757E47D6DD4A}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{0CBAEE18-BC6D-BCCF-15EE-757E47D6DD4A} = {F519AD43-86EC-81B6-AC31-BA6E19E12C7E}
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {26DBED61-04C0-4B02-A91B-474103781415}
+	EndGlobalSection
+EndGlobal
