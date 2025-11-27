@@ -1,23 +1,20 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace MyShop.DTOs
+namespace HomeCareApp.DTOs
 {
-    public class ItemDto
+    public class AvailabilityDto
     {
-        public int ItemId { get; set; }
+        public string PersonnelId { get; set; } = string.Empty;
 
         [Required]
-        [RegularExpression(@"[0-9a-zA-ZæøåÆØÅ. \-]{2,20}", ErrorMessage = "The Name must be numbers or letters and between 2 to 20 characters.")]
-        [Display(Name = "Pastiant name")]
-        public string Name { get; set; } = string.Empty;
+        public DateTime Date { get; set; }
 
         [Required]
-        [Range(0.01, double.MaxValue, ErrorMessage = "The Price must be greater than 0.")]
-        public decimal Price { get; set; }
+        public TimeSpan StartTime { get; set; }
 
-        [StringLength(200)]
-        public string? Description { get; set; }
+        [Required]
+        public TimeSpan EndTime { get; set; }
 
-        public string? ImageUrl { get; set; }
+        public string? Notes { get; set; }
     }
 }

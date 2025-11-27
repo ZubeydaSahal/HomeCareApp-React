@@ -1,6 +1,6 @@
 using HomeCareApp.Models;
 using HomeCareApp.Service.Appointments;
-using HomeCareApp.Service.Availabilitys;
+using HomeCareApp.Service.Availabilities;
 using HomeCareApp.ViewModels.Appointment;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;

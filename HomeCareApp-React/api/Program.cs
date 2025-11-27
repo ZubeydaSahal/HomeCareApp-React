@@ -4,6 +4,7 @@ using Serilog;
 using Serilog.Events;
 using HomeCareApp.Service;
 using Microsoft.Extensions.Options;
+using Newtonsoft.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
 
