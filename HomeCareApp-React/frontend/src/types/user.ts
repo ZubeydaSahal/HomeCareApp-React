@@ -1,10 +1,9 @@
 export interface User {
-    sub: string; // Subject (username)
-    email: string;
-    nameid: string; // User ID
-    jti: string;
-    iat: number;
-    exp: number;
-    iss: string;
-    aud:string;
-}
+    sub: string;        // brukernavn
+    email?: string;
+    jti?: string;
+    exp: number;        // utløpstid (viktig!)
+    iat: number;        // issued at
+    role?: string | string[];  // hvis du vil lese roller senere
+  }
+  

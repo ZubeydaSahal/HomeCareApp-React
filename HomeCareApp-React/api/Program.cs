@@ -1,17 +1,17 @@
-using Microsoft.EntityFrameworkCore;              // <- du bruker UseSqlite
-using System.Text;
-using HomeCareApp.DAL;
-using HomeCareApp.Models;
+using Microsoft.EntityFrameworkCore;
+using Serilog;
+using Serilog.Events;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
+using System.Text;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.OpenApi.Models;
+using HomeCareApp.DAL;
+using HomeCareApp.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// ---------------------------------------
-// Controllers + JSON
-// ---------------------------------------
+// ---------------- Controllers + JSON ----------------
 builder.Services.AddControllers()
     .AddNewtonsoftJson(options =>
     {
@@ -21,12 +21,14 @@ builder.Services.AddControllers()
 
 builder.Services.AddEndpointsApiExplorer();
 
-// ---------------------------------------
-// Swagger + JWT support i Swagger
-// ---------------------------------------
+// ---------------- Swagger + JWT ----------------
 builder.Services.AddSwaggerGen(c =>
 {
-    c.SwaggerDoc("v1", new OpenApiInfo { Title = "HomeCare API", Version = "v1" });
+    c.SwaggerDoc("v1", new OpenApiInfo 
+    { 
+        Title = "HomeCare API",   
+        Version = "v1" 
+    });
 
     c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
     {
@@ -53,9 +55,7 @@ builder.Services.AddSwaggerGen(c =>
     });
 });
 
-// ---------------------------------------
-// DbContext
-// ---------------------------------------
+// ---------------- DbContext ----------------
 builder.Services.AddDbContext<HomeCareDbContext>(options =>
 {
     options.UseSqlite(
@@ -64,46 +64,34 @@ builder.Services.AddDbContext<HomeCareDbContext>(options =>
     );
 });
 
-// ---------------------------------------
-// Identity (bruker din AppUser)
-// ---------------------------------------
+// ---------------- Identity ----------------
 builder.Services.AddIdentity<User, IdentityRole>()
     .AddEntityFrameworkStores<HomeCareDbContext>()
     .AddDefaultTokenProviders();
 
-// ---------------------------------------
-// CORS (til React-frontend)
-// ---------------------------------------
+// ---------------- CORS ----------------
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("CorsPolicy", policy =>
     {
         policy
-            .WithOrigins(
-                "http://localhost:5173",  // Vite standard
-                "http://localhost:3000"   // evt. CRA
-            )
+            .WithOrigins("http://localhost:5173")
             .AllowAnyMethod()
             .AllowAnyHeader()
             .AllowCredentials();
     });
 });
 
-// ---------------------------------------
-// Repositories
-// ---------------------------------------
+// ---------------- Repositories ----------------
 builder.Services.AddScoped<IAvailabilityRepository, AvailabilityRepository>();
 builder.Services.AddScoped<IAppointmentRepository, AppointmentRepository>();
-// legg til flere repos her om du har
 
-// ---------------------------------------
-// Authentication + JWT
-// ---------------------------------------
+// ---------------- Auth + JWT ----------------
 builder.Services.AddAuthentication(options =>
 {
     options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-    options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
+    options.DefaultChallengeScheme    = JwtBearerDefaults.AuthenticationScheme;
+    options.DefaultScheme             = JwtBearerDefaults.AuthenticationScheme;
 })
 .AddJwtBearer(options =>
 {
@@ -112,11 +100,11 @@ builder.Services.AddAuthentication(options =>
 
     options.TokenValidationParameters = new TokenValidationParameters
     {
-        ValidateIssuer = true,
-        ValidateAudience = true,
-        ValidateLifetime = true,
+        ValidateIssuer           = true,
+        ValidateAudience         = true,
+        ValidateLifetime         = true,
         ValidateIssuerSigningKey = true,
-        ValidIssuer = builder.Configuration["Jwt:Issuer"],
+        ValidIssuer   = builder.Configuration["Jwt:Issuer"],
         ValidAudience = builder.Configuration["Jwt:Audience"],
         IssuerSigningKey = new SymmetricSecurityKey(
             Encoding.UTF8.GetBytes(
@@ -129,17 +117,26 @@ builder.Services.AddAuthentication(options =>
 
 builder.Services.AddAuthorization();
 
+// ---------------- Serilog ----------------
+var loggerConfiguration = new LoggerConfiguration()
+    .MinimumLevel.Information()
+    .WriteTo.File($"APILogs/app_{DateTime.Now:yyyyMMdd_HHmmss}.log")
+    .Filter.ByExcluding(e =>
+        e.Properties.TryGetValue("SourceContext", out var value)
+        && e.Level == LogEventLevel.Information
+        && e.MessageTemplate.Text.Contains("Executed DbCommand"));
+
+var logger = loggerConfiguration.CreateLogger();
+builder.Logging.AddSerilog(logger);
+
+// ---------------- App pipeline ----------------
 var app = builder.Build();
 
-// ---------------------------------------
-// Middleware pipeline
-// ---------------------------------------
 if (app.Environment.IsDevelopment())
 {
+    DBInit.Seed(app);
     app.UseSwagger();
     app.UseSwaggerUI();
-    // ev. seeding her hvis du har DBInit
-    // DBInit.Seed(app);
 }
 
 app.UseStaticFiles();

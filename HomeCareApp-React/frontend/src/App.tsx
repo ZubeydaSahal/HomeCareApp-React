@@ -2,7 +2,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-d
 import Container from "react-bootstrap/Container";
 import HomePage from "./home/HomePage";
 import NavMenu from "./shared/NavMenua";
-import AvailabilityCreate from "./Pages/AvailabilityCreat";
+import AvailabilityCreate from "./Pages/AvailabilityCreate";
 import AvailbilityUpdate from "./Pages/AvailabilityUpdate";
 import "./App.css";
 import AvailabilityListPage from "./Pages/AvailabilityList";

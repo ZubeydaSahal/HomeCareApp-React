@@ -12,6 +12,7 @@ namespace HomeCareApp.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
+    [Authorize] 
     public class AuthController : ControllerBase
     {
         private readonly UserManager<AppUser> _userManager;

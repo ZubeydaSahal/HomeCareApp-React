@@ -23,18 +23,25 @@ const handleResponse = async (response: Response) => {
 };
 
 // Get list of availabilities
-export const fetchAvailabilities = async (availabilityId?: string) => {
+  export const fetchAvailabilities = async (availabilityId?: string) => {
     const url = availabilityId
       ? `${API_URL}/api/availability/${availabilityId}`
       : `${API_URL}/api/availability/list`;
   
-    const response = await fetch(url, { credentials: "include" });
+    const response = await fetch(url, {
+      method: "GET",
+      headers: getAuthHeaders(),   // 👈 viktig nå
+    });
     return handleResponse(response);
   };
+  
   
 
 // Create new availability
 export const createAvailability = async (availability: any) => {
+  const headers = getAuthHeaders();
+  console.log('createAvailability headers:', headers); 
+
   const response = await fetch(`${API_URL}/api/availability/create`, {
     method: "POST",
     headers:getAuthHeaders(),
@@ -42,7 +49,6 @@ export const createAvailability = async (availability: any) => {
   });
   return handleResponse(response);
 };
-
 
 
 // Update existing availability
