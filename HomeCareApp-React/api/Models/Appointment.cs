@@ -13,14 +13,14 @@ namespace HomeCareApp.Models
         public string ClientId { get; set; } = string.Empty;
 
         [ForeignKey(nameof(ClientId))]
-        public User? Client { get; set; }     // 👈 navigasjon til klient
+        public User? Client { get; set; }  
 
         [Required]
         [Display(Name = "Availability")]
         public int AvailabilityId { get; set; }
 
         [ForeignKey(nameof(AvailabilityId))]
-        public Availability? Availability { get; set; }  // 👈 navigasjon til Availability
+        public Availability? Availability { get; set; }  
 
         [Required(ErrorMessage = "Task description is required.")]
         [StringLength(200, ErrorMessage = "Task description cannot be longer than 200 characters.")]

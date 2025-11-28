@@ -1,466 +1,211 @@
 using HomeCareApp.DAL;
+using HomeCareApp.DTOs;
 using HomeCareApp.Models;
-using HomeCareApp.ViewModels.Appointment;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Rendering;
-using Serilog;
 using AppUser = HomeCareApp.Models.User;
 
-namespace HomeCareApp.Controllers
+namespace HomeCareApp.Controllers;
+
+[ApiController]
+[Route("api/appointments")]
+[Authorize(Roles = "Personnel,Patient,Admin")]
+public class AppointmentApiController : ControllerBase
 {
-    [Authorize]
-    public class AppointmentController : Controller
+    private readonly IAppointmentRepository _appointmentRepository;
+    private readonly IAvailabilityRepository _availabilityRepository;
+    private readonly UserManager<AppUser> _userManager;
+
+    public AppointmentApiController(
+        IAppointmentRepository appointmentRepository,
+        IAvailabilityRepository availabilityRepository,
+        UserManager<AppUser> userManager)
     {
-        private readonly IAppointmentRepository _appointmentRepository;
-        private readonly IAvailabilityRepository _availabilityRepository;
-        private readonly UserManager<AppUser> _userManager;
+        _appointmentRepository = appointmentRepository;
+        _availabilityRepository = availabilityRepository;
+        _userManager = userManager;
+    }
 
-        public AppointmentController(
-            IAppointmentRepository appointmentRepository,
-            IAvailabilityRepository availabilityRepository,
-            UserManager<AppUser> userManager)
+    // GET: api/appointments/list
+    [HttpGet("list")]
+    public async Task<ActionResult<IEnumerable<AppointmentDto>>> List()
+    {
+        var all = await _appointmentRepository.GetAllAsync() ?? new List<Appointment>();
+
+        var dtos = all.Select(a => new AppointmentDto
         {
-            _appointmentRepository = appointmentRepository;
-            _availabilityRepository = availabilityRepository;
-            _userManager = userManager;
+            Id = a.Id,
+            AvailabilityId = a.AvailabilityId,
+            ClientId = a.ClientId,
+            ClientName = a.Client?.FullName,
+            PersonnelId = a.Availability?.PersonnelId,
+            PersonnelName = a.Availability?.Personnel?.FullName,
+            //Date = a.Availability?.Date ?? default,  // DateOnly
+
+    
+            // Hvis Appointment.StartTime er TimeSpan, bruk heller:
+            StartTime = TimeOnly.FromTimeSpan(a.StartTime),
+            EndTime   = TimeOnly.FromTimeSpan(a.EndTime),
+
+            TaskDescription = a.TaskDescription,
+            Status = a.Status
+        });
+
+        return Ok(dtos);
+    }
+
+    // GET: api/appointments/5
+    [HttpGet("{id:int}")]
+    public async Task<ActionResult<AppointmentDto>> Get(int id)
+    {
+        var a = await _appointmentRepository.GetByIdAsync(id);
+        if (a == null) return NotFound();
+
+        var dto = new AppointmentDto
+        {
+            Id = a.Id,
+            AvailabilityId = a.AvailabilityId,
+            ClientId = a.ClientId,
+            ClientName = a.Client?.FullName,
+            PersonnelId = a.Availability?.PersonnelId,
+            PersonnelName = a.Availability?.Personnel?.FullName,
+            //Date = a.Availability?.Date ?? default,
+
+            // Samme kommentar som over ang. TimeOnly vs TimeSpan
+            StartTime = TimeOnly.FromTimeSpan(a.StartTime),
+            EndTime   = TimeOnly.FromTimeSpan(a.EndTime),
+
+            TaskDescription = a.TaskDescription,
+            Status = a.Status
+        };
+
+        return Ok(dto);
+    }
+
+    // POST: api/appointments/create
+    [HttpPost("create")]
+    public async Task<ActionResult> Create([FromBody] AppointmentCreateDto dto)
+    {
+        if (!ModelState.IsValid) return BadRequest(ModelState);
+
+        var slot = await _availabilityRepository.GetByIdAsync(dto.AvailabilityId);
+        if (slot == null) return BadRequest("Selected availability does not exist.");
+        if (slot.Appointment != null) return BadRequest("This time slot is already booked.");
+
+        // Hvem er klient?
+        string? clientId;
+
+        if (User.IsInRole("Patient"))
+        {
+            clientId = _userManager.GetUserId(User);
+            if (clientId == null) return Unauthorized("Could not find logged-in patient.");
+        }
+        else
+        {
+            if (string.IsNullOrWhiteSpace(dto.ClientId))
+                return BadRequest("ClientId is required for Personnel/Admin.");
+            clientId = dto.ClientId;
         }
 
-        // ===========================================================
-        // INDEX - show all appointments
-        // ===========================================================
-        [Authorize(Roles = "Personnel,Patient,Admin")]
-        public async Task<IActionResult> Index()
+        if (dto.StartTime >= dto.EndTime)
+            return BadRequest("End time must be after start time.");
+
+        var appointment = new Appointment
         {
-            try
-            {
-                Log.Information("AppointmentController.Index called by User {User}", User.Identity?.Name);
+            AvailabilityId = dto.AvailabilityId,
+            ClientId = clientId!,
+            TaskDescription = dto.TaskDescription,
+            Status = dto.Status,
 
-                if (User.IsInRole("Personnel") || User.IsInRole("Admin"))
-                {
-                    var all = await _appointmentRepository.GetAllAsync() ?? new List<Appointment>();
-                    Log.Information("Loaded {Count} appointments for Personnel/Admin", all.Count);
-                    return View(all);
-                }
+    
 
-                var userId = _userManager.GetUserId(User);
-                if (string.IsNullOrEmpty(userId))
-                {
-                    Log.Warning("Challenge returned in Index because userId was null");
-                    return Challenge();
-                }
+            // Hvis entiteten bruker TimeSpan, bruk:
+             StartTime = dto.StartTime.ToTimeSpan(),
+             EndTime   = dto.EndTime.ToTimeSpan(),
+        };
 
-                var mine = await _appointmentRepository.GetByClientIdAsync(userId) ?? new List<Appointment>();
-                Log.Information("Loaded {Count} appointments for patient {UserId}", mine.Count, userId);
-                return View(mine);
-            }
-            catch (Exception ex)
-            {
-                Log.Error(ex, "Error occurred in AppointmentController.Index");
-                TempData["Error"] = "An unexpected error occurred.";
-                return RedirectToAction("Error", "Home");
-            }
+        await _appointmentRepository.CreateAsync(appointment);
+
+        var resultDto = new AppointmentDto
+        {
+            Id = appointment.Id,
+            AvailabilityId = appointment.AvailabilityId,
+            ClientId = appointment.ClientId,
+            TaskDescription = appointment.TaskDescription,
+            Status = appointment.Status,
+            Date = slot.Date,
+            ClientName = appointment.Client?.FullName,
+            PersonnelId = slot.PersonnelId,
+            PersonnelName = slot.Personnel?.FullName,
+
+            // Samme type-kommentar som over:
+        
+            StartTime = TimeOnly.FromTimeSpan(appointment.StartTime),
+            EndTime   = TimeOnly.FromTimeSpan(appointment.EndTime),
+            // eller FromTimeSpan(...)
+        };
+
+        return CreatedAtAction(nameof(Get), new { id = appointment.Id }, resultDto);
+    }
+
+    // PUT: api/appointments/update/5
+    [HttpPut("update/{id:int}")]
+    public async Task<ActionResult> Update(int id, [FromBody] AppointmentCreateDto dto)
+    {
+        if (!ModelState.IsValid) return BadRequest(ModelState);
+
+        var appt = await _appointmentRepository.GetByIdAsync(id);
+        if (appt == null) return NotFound();
+
+        if (dto.StartTime >= dto.EndTime)
+            return BadRequest("End time must be after start time.");
+
+        var slot = await _availabilityRepository.GetByIdAsync(dto.AvailabilityId);
+        if (slot == null) return BadRequest("Selected availability does not exist.");
+        if (slot.Appointment != null && slot.Id != appt.AvailabilityId)
+            return BadRequest("This time slot is already booked.");
+
+        if (User.IsInRole("Patient"))
+        {
+            var userId = _userManager.GetUserId(User);
+            if (appt.ClientId != userId) return Forbid();
+
+            appt.Status = "Booked"; // pasient kan ikke endre til hva som helst
+        }
+        else
+        {
+            if (!string.IsNullOrWhiteSpace(dto.ClientId))
+                appt.ClientId = dto.ClientId!;
+            appt.Status = dto.Status;
         }
 
-        // ===========================================================
-        // CREATE (GET)
-        // ===========================================================
-        [Authorize(Roles = "Personnel,Patient,Admin")]
-        public async Task<IActionResult> Create()
+        appt.AvailabilityId = dto.AvailabilityId;
+        appt.TaskDescription = dto.TaskDescription;
+
+    
+        // Hvis entiteten bruker TimeSpan:
+        appt.StartTime = dto.StartTime.ToTimeSpan();
+        appt.EndTime   = dto.EndTime.ToTimeSpan();
+
+        await _appointmentRepository.UpdateAsync(appt);
+        return NoContent();
+    }
+
+    // DELETE: api/appointments/delete/5
+    [HttpDelete("delete/{id:int}")]
+    public async Task<ActionResult> Delete(int id)
+    {
+        var appt = await _appointmentRepository.GetByIdAsync(id);
+        if (appt == null) return NotFound();
+
+        if (User.IsInRole("Patient"))
         {
-            try
-            {
-                Log.Information("AppointmentController.Create(GET) called by {User}", User.Identity?.Name);
-
-                var availabilities = await _availabilityRepository.GetAllAsync() ?? new List<Availability>();
-                var freeSlots = availabilities.Where(a => a.Appointment == null).ToList();
-
-                var isStaff = User.IsInRole("Personnel") || User.IsInRole("Admin");
-
-                var vm = new AppointmentCreateViewModel
-                {
-                    IsPersonnel = isStaff,
-                    AvailabilityOptions = new SelectList(
-                        freeSlots.Select(a => new
-                        {
-                            a.Id,
-                            Display = $"{a.Personnel?.UserName ?? "Ukjent"} - {a.Date:yyyy-MM-dd} {a.StartTime:hh\\:mm}-{a.EndTime:hh\\:mm}"
-                        }),
-                        "Id", "Display"
-                    )
-                };
-
-                if (isStaff)
-                {
-                    var patients = await _userManager.GetUsersInRoleAsync("Patient");
-                    vm.ClientOptions = new SelectList(patients, "Id", "UserName");
-                }
-
-                return View(vm);
-            }
-            catch (Exception ex)
-            {
-                Log.Error(ex, "Error loading Appointment Create(GET)");
-                TempData["Error"] = "An unexpected error occurred.";
-                return RedirectToAction(nameof(Index));
-            }
+            var userId = _userManager.GetUserId(User);
+            if (appt.ClientId != userId) return Forbid();
         }
 
-        // ===========================================================
-        // CREATE (POST)
-        // ===========================================================
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        [Authorize(Roles = "Personnel,Patient,Admin")]
-        public async Task<IActionResult> Create(AppointmentCreateViewModel vm)
-        {
-            try
-            {
-                Log.Information("AppointmentController.Create(POST) called with AvailabilityId {AvailabilityId}", vm.AvailabilityId);
-
-                if (User.IsInRole("Patient"))
-                {
-                    vm.ClientId = _userManager.GetUserId(User);
-                    if (string.IsNullOrEmpty(vm.ClientId))
-                    {
-                        Log.Warning("Patient Create failed: userId null");
-                        return Challenge();
-                    }
-                }
-                else if (string.IsNullOrWhiteSpace(vm.ClientId))
-                {
-                    ModelState.AddModelError(nameof(vm.ClientId), "Please choose a client.");
-                }
-
-                if (vm.StartTime >= vm.EndTime)
-                    ModelState.AddModelError(nameof(vm.EndTime), "End time must be after start time.");
-
-                var slot = await _availabilityRepository.GetByIdAsync(vm.AvailabilityId);
-                if (slot is null)
-                {
-                    ModelState.AddModelError(nameof(vm.AvailabilityId), "Selected availability does not exist.");
-                }
-                else if (slot.Appointment != null)
-                {
-                    ModelState.AddModelError(nameof(vm.AvailabilityId), "This time slot is already booked.");
-                }
-
-                if (!ModelState.IsValid)
-                {
-                    Log.Warning("Appointment Create validation failed for user {User}", User.Identity?.Name);
-
-                    var availabilities = await _availabilityRepository.GetAllAsync() ?? new List<Availability>();
-                    var freeSlots = availabilities.Where(a => a.Appointment == null).ToList();
-                    var isStaff = User.IsInRole("Personnel") || User.IsInRole("Admin");
-
-                    vm.IsPersonnel = isStaff;
-                    vm.AvailabilityOptions = new SelectList(
-                        freeSlots.Select(a => new
-                        {
-                            a.Id,
-                            Display = $"{a.Personnel?.UserName ?? "Ukjent"} - {a.Date:yyyy-MM-dd} {a.StartTime:hh\\:mm}-{a.EndTime:hh\\:mm}"
-                        }),
-                        "Id", "Display", vm.AvailabilityId
-                    );
-
-                    if (isStaff)
-                    {
-                        var patients = await _userManager.GetUsersInRoleAsync("Patient");
-                        vm.ClientOptions = new SelectList(patients, "Id", "UserName", vm.ClientId);
-                    }
-
-                    return View(vm);
-                }
-
-                var appointment = new Appointment
-                {
-                    ClientId = vm.ClientId!,
-                    AvailabilityId = vm.AvailabilityId,
-                    TaskDescription = vm.TaskDescription,
-                    StartTime = vm.StartTime,
-                    EndTime = vm.EndTime,
-                    Status = vm.Status
-                };
-
-                await _appointmentRepository.CreateAsync(appointment);
-                Log.Information("Appointment {AppointmentId} created by {User}", appointment.Id, User.Identity?.Name);
-
-                return RedirectToAction(nameof(Index));
-            }
-            catch (Exception ex)
-            {
-                Log.Error(ex, "Error creating appointment");
-                TempData["Error"] = "Could not create appointment.";
-                return RedirectToAction(nameof(Index));
-            }
-        }
-
-        // ===========================================================
-        // EDIT (GET)
-        // ===========================================================
-        [Authorize(Roles = "Personnel,Patient,Admin")]
-        public async Task<IActionResult> Edit(int id)
-        {
-            try
-            {
-                Log.Information("Loading appointment {Id} for Edit(GET)", id);
-
-                var appt = await _appointmentRepository.GetByIdAsync(id);
-                if (appt == null)
-                {
-                    Log.Warning("Edit(GET) NotFound for appointment {Id}", id);
-                    return NotFound();
-                }
-
-                var isPatient = User.IsInRole("Patient");
-                if (isPatient)
-                {
-                    var userId = _userManager.GetUserId(User);
-                    if (appt.ClientId != userId)
-                    {
-                        Log.Warning("Patient {User} attempted to edit appointment {Id} they do not own", userId, id);
-                        return Forbid();
-                    }
-
-                    var apptStart = (appt.Availability?.Date ?? DateTime.Today).Add(appt.StartTime);
-                    if (apptStart <= DateTime.Now.AddHours(24))
-                    {
-                        TempData["Error"] = "Rescheduling appointments must be more than 24 hours in advance.";
-                        return RedirectToAction(nameof(Index));
-                    }
-                }
-
-                var isStaff = User.IsInRole("Personnel") || User.IsInRole("Admin");
-
-                var vm = new AppointmentCreateViewModel
-                {
-                    AvailabilityId = appt.AvailabilityId,
-                    TaskDescription = appt.TaskDescription,
-                    StartTime = appt.StartTime,
-                    EndTime = appt.EndTime,
-                    Status = appt.Status,
-                    ClientId = appt.ClientId,
-                    IsPersonnel = isStaff
-                };
-
-                var allAvail = await _availabilityRepository.GetAllAsync() ?? new List<Availability>();
-                var freeSlots = allAvail.Where(a => a.Appointment == null || a.Id == appt.AvailabilityId).ToList();
-
-                vm.AvailabilityOptions = new SelectList(
-                    freeSlots.Select(a => new
-                    {
-                        a.Id,
-                        Display = $"{a.Personnel?.UserName ?? "Ukjent"} - {a.Date:yyyy-MM-dd} {a.StartTime:hh\\:mm}-{a.EndTime:hh\\:mm}"
-                    }),
-                    "Id", "Display", vm.AvailabilityId
-                );
-
-                if (vm.IsPersonnel)
-                {
-                    var patients = await _userManager.GetUsersInRoleAsync("Patient");
-                    vm.ClientOptions = new SelectList(patients, "Id", "UserName", vm.ClientId);
-                }
-
-                return View(vm);
-            }
-            catch (Exception ex)
-            {
-                Log.Error(ex, "Error loading Edit(GET) for appointment {Id}", id);
-                TempData["Error"] = "Could not load edit page.";
-                return RedirectToAction(nameof(Index));
-            }
-        }
-
-        // ===========================================================
-        // EDIT (POST)
-        // ===========================================================
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        [Authorize(Roles = "Personnel,Patient,Admin")]
-        public async Task<IActionResult> Edit(int id, AppointmentCreateViewModel vm)
-        {
-            try
-            {
-                Log.Information("Appointment Edit(POST) called for Id {Id}", id);
-
-                var appt = await _appointmentRepository.GetByIdAsync(id);
-                if (appt == null)
-                {
-                    Log.Warning("Edit(POST) NotFound for appointment {Id}", id);
-                    return NotFound();
-                }
-
-                var isPatient = User.IsInRole("Patient");
-                var isStaff = User.IsInRole("Personnel") || User.IsInRole("Admin");
-
-                if (isPatient)
-                {
-                    var userId = _userManager.GetUserId(User);
-                    if (appt.ClientId != userId)
-                    {
-                        Log.Warning("Patient {User} attempted to edit appointment {Id} they do not own", userId, id);
-                        return Forbid();
-                    }
-
-                    var apptStart = (appt.Availability?.Date ?? DateTime.Today).Add(appt.StartTime);
-                    if (apptStart <= DateTime.Now.AddHours(24))
-                    {
-                        TempData["Error"] = "You can only edit appointments at least 24 hours in advance.";
-                        return RedirectToAction(nameof(Index));
-                    }
-                }
-
-                if (vm.StartTime >= vm.EndTime)
-                    ModelState.AddModelError(nameof(vm.EndTime), "End time must be after start time.");
-
-                var selected = await _availabilityRepository.GetByIdAsync(vm.AvailabilityId);
-                if (selected is null)
-                    ModelState.AddModelError(nameof(vm.AvailabilityId), "Selected availability does not exist.");
-                else if (selected.Appointment != null && selected.Id != appt.AvailabilityId)
-                    ModelState.AddModelError(nameof(vm.AvailabilityId), "This time slot is already booked.");
-
-                if (!isStaff)
-                    vm.ClientId = appt.ClientId;
-
-                if (!ModelState.IsValid)
-                {
-                    Log.Warning("Appointment Edit validation failed for Id {Id}", id);
-
-                    var allAvail = await _availabilityRepository.GetAllAsync() ?? new List<Availability>();
-                    var freeSlots = allAvail.Where(a => a.Appointment == null || a.Id == appt.AvailabilityId).ToList();
-
-                    vm.IsPersonnel = isStaff;
-                    vm.AvailabilityOptions = new SelectList(
-                        freeSlots.Select(a => new
-                        {
-                            a.Id,
-                            Display = $"{a.Personnel?.UserName ?? "Unknown"} - {a.Date:yyyy-MM-dd} {a.StartTime:hh\\:mm}-{a.EndTime:hh\\:mm}"
-                        }),
-                        "Id", "Display", vm.AvailabilityId
-                    );
-
-                    if (isStaff)
-                    {
-                        var patients = await _userManager.GetUsersInRoleAsync("Patient");
-                        vm.ClientOptions = new SelectList(patients, "Id", "UserName", vm.ClientId);
-                    }
-
-                    return View(vm);
-                }
-
-                appt.AvailabilityId = vm.AvailabilityId;
-                appt.TaskDescription = vm.TaskDescription;
-                appt.StartTime = vm.StartTime;
-                appt.EndTime = vm.EndTime;
-
-                if (isStaff)
-                {
-                    appt.Status = vm.Status;
-                    appt.ClientId = vm.ClientId!;
-                }
-                else
-                {
-                    appt.Status = "Booked";
-                }
-
-                await _appointmentRepository.UpdateAsync(appt);
-                Log.Information("Appointment {Id} updated successfully by {User}", id, User.Identity?.Name);
-
-                TempData["Success"] = "Appointment updated.";
-                return RedirectToAction(nameof(Index));
-            }
-            catch (Exception ex)
-            {
-                Log.Error(ex, "Error in Appointment Edit(POST) for {Id}", id);
-                TempData["Error"] = "Could not update appointment.";
-                return RedirectToAction(nameof(Index));
-            }
-        }
-
-        // ===========================================================
-        // DELETE
-        // ===========================================================
-        [Authorize(Roles = "Personnel,Patient,Admin")]
-        public async Task<IActionResult> Delete(int id)
-        {
-            try
-            {
-                Log.Information("Delete(GET) called for appointment {Id}", id);
-
-                var appointment = await _appointmentRepository.GetByIdAsync(id);
-                if (appointment == null)
-                {
-                    Log.Warning("Delete(GET) NotFound for appointment {Id}", id);
-                    return NotFound();
-                }
-
-                if (User.IsInRole("Patient"))
-                {
-                    var userId = _userManager.GetUserId(User);
-                    if (appointment.ClientId != userId)
-                    {
-                        Log.Warning("Patient {User} attempted to delete appointment {Id} they do not own", userId, id);
-                        return Forbid();
-                    }
-                }
-
-                return View(appointment);
-            }
-            catch (Exception ex)
-            {
-                Log.Error(ex, "Error loading Delete(GET) for appointment {Id}", id);
-                TempData["Error"] = "Could not load delete page.";
-                return RedirectToAction(nameof(Index));
-            }
-        }
-
-        [HttpPost, ActionName("Delete")]
-        [ValidateAntiForgeryToken]
-        [Authorize(Roles = "Personnel,Patient,Admin")]
-        public async Task<IActionResult> DeleteConfirmed(int id)
-        {
-            try
-            {
-                Log.Information("DeleteConfirmed(POST) called for appointment {Id}", id);
-
-                var appointment = await _appointmentRepository.GetByIdAsync(id);
-                if (appointment == null)
-                {
-                    Log.Warning("DeleteConfirmed(POST) NotFound for appointment {Id}", id);
-                    return NotFound();
-                }
-
-                if (User.IsInRole("Patient"))
-                {
-                    var userId = _userManager.GetUserId(User);
-                    if (appointment.ClientId != userId)
-                    {
-                        Log.Warning("Patient {User} attempted to delete appointment {Id} they do not own", userId, id);
-                        return Forbid();
-                    }
-
-                    var slotDate = appointment.Availability?.Date.Add(appointment.Availability?.StartTime ?? TimeSpan.Zero);
-
-                    if (slotDate <= DateTime.Now.AddDays(1))
-                    {
-                        TempData["Error"] = "Appointment cancellations less than 24 hours before are not allowed.";
-                        return RedirectToAction(nameof(Index));
-                    }
-                }
-
-                await _appointmentRepository.DeleteAsync(id);
-                Log.Information("Appointment {Id} successfully deleted by {User}", id, User.Identity?.Name);
-
-                TempData["Success"] = "Appointment cancelled successfully.";
-                return RedirectToAction(nameof(Index));
-            }
-            catch (Exception ex)
-            {
-                Log.Error(ex, "Error deleting appointment {Id}", id);
-                TempData["Error"] = "Could not delete appointment.";
-                return RedirectToAction(nameof(Index));
-            }
-        }
+        await _appointmentRepository.DeleteAsync(id);
+        return NoContent();
     }
 }
