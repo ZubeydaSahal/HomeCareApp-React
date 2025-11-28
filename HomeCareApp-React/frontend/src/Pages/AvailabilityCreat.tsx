@@ -6,14 +6,14 @@ import * as AvailabiliyService from "./AvailabilityService";
 
 
 
-const API_URL = import.meta.env.VITE_API_URL;
+const API_URL = "https://localhost:5043"
 
 const AvailabilityCreate: React.FC = () => {
   const navigate = useNavigate();
 
   const handleAvailabilityCreated = async (availability: Availability) => {
     try {
-      const data=await AvailabiliyService.createAvailability(availability);
+      const d=await AvailabiliyService.createAvailability(availability);
       const response = await fetch(`${API_URL}/api/availability/create`, {
         method: "POST",
         headers: {

@@ -4,7 +4,7 @@ import type { Availability } from "../types/Availability";
 
 interface AvailabilityGridProps {
   availabilities: Availability[];
-  apiUrl: string; // ikke brukt nå, men greit å ha hvis du vil bruke bilder senere
+  apiUrl?: string; // ikke brukt nå, men greit å ha hvis du vil bruke bilder senere
   onAvailabilityDeleted?: (id: number) => void;
 
 }

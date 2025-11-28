@@ -6,7 +6,7 @@ import {Link} from "react-router-dom";
 
 interface AvailabilityTableProps {
   availabilities: Availability[];
-  apiUrl: string; // brukes ikke nå, men fint å ha hvis du vil senere
+  apiUrl?: string; // brukes ikke nå, men fint å ha hvis du vil senere
   onAvailabilityDeleted?: (id: number) => void;
 }
 
