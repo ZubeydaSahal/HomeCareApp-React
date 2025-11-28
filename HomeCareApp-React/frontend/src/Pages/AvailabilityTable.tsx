@@ -1,74 +1,131 @@
-// src/availability/AvailabilityTable.tsx (eller tilsvarende path)
-import React, { useState } from "react";
+import React from "react";
 import { Table, Button } from "react-bootstrap";
+import { Link } from "react-router-dom";
 import { Availability } from "../types/Availability";
-import {Link} from "react-router-dom";
 
-interface AvailabilityTableProps {
+interface Props {
   availabilities: Availability[];
-  apiUrl?: string; // brukes ikke nå, men fint å ha hvis du vil senere
   onAvailabilityDeleted?: (id: number) => void;
 }
 
-const AvailabilityTable: React.FC<AvailabilityTableProps> = ({
+const AvailabilityTable: React.FC<Props> = ({
   availabilities,
-  apiUrl,
-  onAvailabilityDeleted
+  onAvailabilityDeleted,
 }) => {
-  const [showNotes, setShowNotes] = useState<boolean>(true);
-  const [showPersonnel, setShowPersonnel] = useState<boolean>(true);
+  const sorted = [...availabilities].sort((a, b) => {
+    const da = new Date(a.date).getTime();
+    const db = new Date(b.date).getTime();
+    if (da !== db) return da - db;
 
-  const toggleNotes = () => setShowNotes((prev) => !prev);
-  const togglePersonnel = () => setShowPersonnel((prev) => !prev);
+    // sortér også på startTime hvis dato er lik
+    const ta = a.startTime ?? "";
+    const tb = b.startTime ?? "";
+    return ta.localeCompare(tb);
+  });
+
+  const formatDate = (iso: string) =>
+    new Date(iso).toLocaleDateString("nb-NO", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "2-digit",
+    });
+
+  const formatTime = (t?: string) => (t ? t.slice(0, 5) : "");
 
   return (
-    <div>
-      <Button
-        onClick={togglePersonnel}
-        className="btn btn-secondary mb-3 me-2"
-      >
-        {showPersonnel ? "Hide Personnel" : "Show Personnel"}
-      </Button>
-      <Button onClick={toggleNotes} className="btn btn-secondary mb-3">
-        {showNotes ? "Hide Notes" : "Show Notes"}
-      </Button>
-
-      <Table striped bordered hover>
-        <thead>
-          <tr>
-            <th>Id</th>
-            {showPersonnel && <th>Personnel</th>}
-            <th>Date</th>
-            <th>Start</th>
-            <th>End</th>
-            {showNotes && <th>Notes</th>}
-            <th>Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          {availabilities.map((a) => (
-            <tr key={a.id}>
-              <td>{a.id}</td>
-              {showPersonnel && <td>{a.personnelId}</td>}
-              <td>{a.date}</td>
-              <td>{a.startTime}</td>
-              <td>{a.endTime}</td>
-              {showNotes && <td>{a.notes}</td>}
-
-              <td className="text-center">
-                <Link to={`/availability/edit/${a.id}`} className="btn btn-primary btn-sm">
-                  Edit
-                </Link>
-              </td>
-              <td>
-                <Link to={`/availability/delete/${a.id}`} className="btn btn-danger btn-sm">
-                  Delete
-                </Link>
-              </td>
+    <div className="card border-1 border-dark bg-white overflow-hidden">
+      <div className="card-body p-0">
+        <Table hover className="mb-0 bg-white rounded">
+          <thead className="table-light">
+            <tr>
+              <th className="fw-bold text-dark py-3 px-4 border-bottom border-dark">
+                Date
+              </th>
+              <th className="fw-bold text-dark py-3 px-4 border-bottom border-dark">
+                Start
+              </th>
+              <th className="fw-bold text-dark py-3 px-4 border-bottom border-dark">
+                End
+              </th>
+              <th className="fw-bold text-dark py-3 px-4 border-bottom border-dark">
+                Status
+              </th>
+              <th className="fw-bold text-dark py-3 px-4 border-bottom border-dark text-end">
+                Actions
+              </th>
             </tr>
-          ))}
-        </tbody>
-      </Table>
+          </thead>
+          <tbody>
+            {sorted.map((a) => {
+              const isBooked = a.isBooked ?? a.appointmentId != null;
+
+              return (
+                <tr key={a.id}>
+                  <td className="py-3 px-4 text-dark">
+                    {formatDate(a.date)}
+                  </td>
+                  <td className="py-3 px-4 text-dark">
+                    {formatTime(a.startTime)}
+                  </td>
+                  <td className="py-3 px-4 text-dark">
+                    {formatTime(a.endTime)}
+                  </td>
+                  <td className="py-3 px-4 text-dark">
+                    {isBooked ? (
+                      <span className="badge bg-success">Booked</span>
+                    ) : (
+                      <span className="badge bg-secondary">Available</span>
+                    )}
+                  </td>
+                  <td className="py-3 px-4 text-dark text-end">
+                    {!isBooked ? (
+                      <>
+                        <Button
+                          as={Link}
+                          to={`/availability/edit/${a.id}`}
+                          variant="outline-secondary"
+                          size="sm"
+                          className="me-2"
+                        >
+                          Edit
+                        </Button>
+                        <Button
+                          variant="outline-danger"
+                          size="sm"
+                          onClick={() =>
+                            a.id && onAvailabilityDeleted?.(a.id)
+                          }
+                        >
+                          Delete
+                        </Button>
+                      </>
+                    ) : (
+                      <Button
+                        variant="outline-secondary"
+                        size="sm"
+                        disabled
+                      >
+                        Booked
+                      </Button>
+                    )}
+                  </td>
+                </tr>
+              );
+            })}
+
+            {sorted.length === 0 && (
+              <tr>
+                <td
+                  colSpan={5}
+                  className="py-4 px-4 text-center text-muted"
+                >
+                  No availability slots found.
+                </td>
+              </tr>
+            )}
+          </tbody>
+        </Table>
+      </div>
     </div>
   );
 };

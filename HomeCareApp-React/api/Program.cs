@@ -24,6 +24,7 @@ builder.Services.AddDbContext<HomeCareDbContext>(options =>
     );
 });
 
+// Identity
 builder.Services
     .AddIdentity<User, IdentityRole>(options =>
     {
@@ -37,12 +38,23 @@ builder.Services
     .AddEntityFrameworkStores<HomeCareDbContext>()
     .AddDefaultTokenProviders();
 
+// CORS for React-frontend
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("FrontendPolicy", policy =>
+    {
+        policy
+            .WithOrigins("http://localhost:5173") 
+            .AllowAnyHeader()
+            .AllowAnyMethod()
+            .AllowCredentials();
+    });
+});
+
 // Repoer
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IAvailabilityRepository, AvailabilityRepository>();
 builder.Services.AddScoped<IAppointmentRepository, AppointmentRepository>();
-
-// CORS, Serilog, osv...
 
 var app = builder.Build();
 
@@ -54,8 +66,10 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseStaticFiles();
+
 app.UseRouting();
-app.UseCors("CorsPolicy");
+
+app.UseCors("FrontendPolicy");
 
 app.UseAuthentication();
 app.UseAuthorization();

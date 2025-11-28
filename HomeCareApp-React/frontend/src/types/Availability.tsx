@@ -1,9 +1,11 @@
-// src/types/Availability.ts
 export interface Availability {
-  id?: number;
+  id: number;
   personnelId: string;
-  date: string;        // eller Date hvis API-et ditt bruker det
-  startTime: string;   // eller TimeSpan-konvertert til string
+  personnelName?: string;
+  date: string;
+  startTime: string;
   endTime: string;
   notes?: string | null;
+  appointmentId?: number | null;
+  isBooked?: boolean;
 }

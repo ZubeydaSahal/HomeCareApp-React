@@ -4,41 +4,18 @@ import AvailabilityForm from "./AvailabilityForm";
 import { Availability } from "../types/Availability";
 import * as AvailabiliyService from "./AvailabilityService";
 
-
-
-const API_URL = "https://localhost:5043"
-
 const AvailabilityCreate: React.FC = () => {
   const navigate = useNavigate();
 
   const handleAvailabilityCreated = async (availability: Availability) => {
     try {
-      const d=await AvailabiliyService.createAvailability(availability);
-      const response = await fetch(`${API_URL}/api/availability/create`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(availability),
-        credentials: "include", // hvis du bruker cookie-basert auth
-      });
-
-      if (!response.ok) {
-        throw new Error("Network response was not ok");
-      }
-
-      const data = await response.json();
-      console.log("Availability created successfully:", data);
-
-      // Etter vellykket opprettelse → tilbake til liste
+      await AvailabiliyService.createAvailability(availability);
       navigate("/availability");
     } catch (error) {
-      console.error(
-        "There was a problem with the fetch operation:",
-        error
-      );
+      console.error("There was a problem with the fetch operation:", error);
     }
   };
+  
 
   return (
     <div>
