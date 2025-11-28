@@ -79,67 +79,48 @@ public class AvailabilityApiController : ControllerBase
     // Bruker innlogget bruker (fra JWT) som Personnel
 
  [HttpPost("create")]
-    [Authorize(Roles = "Personnel,Admin")]
-    public async Task<ActionResult> Create([FromBody] AvailabilityCreateDto dto)
+[Authorize(Roles = "Personnel,Admin")]
+public async Task<ActionResult> Create([FromBody] AvailabilityCreateDto dto)
+{
+    if (!ModelState.IsValid) return BadRequest(ModelState);
+
+    var userId = GetCurrentUserId();
+    if (string.IsNullOrEmpty(userId))
     {
-        if (!ModelState.IsValid) return BadRequest(ModelState);
-
-        // 1) Hent alle NameIdentifier-claims
-        var nameIdClaims = User.Claims
-            .Where(c => c.Type == ClaimTypes.NameIdentifier)
-            .ToList();
-
-        if (!nameIdClaims.Any())
-        {
-            var claimsDump = string.Join(", ", 
-                User.Claims.Select(c => $"{c.Type}={c.Value}"));
-
-            Console.WriteLine(
-                $"[AvailabilityApiController.Create] No NameIdentifier claim. Claims: {claimsDump}");
-
-            return Unauthorized("Could not read user id from token.");
-        }
-
-        // 2) Ta SISTE NameIdentifier (den er GUID-en fra user.Id)
-        var userId = nameIdClaims.Last().Value;
-
-        Console.WriteLine(
-            $"[AvailabilityApiController.Create] NameId claims: {string.Join(" | ", nameIdClaims.Select(c => c.Value))}. Using userId={userId}");
-
-        var user = await _userManager.FindByIdAsync(userId);
-        if (user == null)
-        {
-            Console.WriteLine(
-                $"[AvailabilityApiController.Create] No Identity user found with Id={userId}");
-
-            return BadRequest($"No Identity user found with Id={userId}");
-        }
-
-        // 3) Lag Availability med riktig PersonnelId (GUID som matcher AspNetUsers.Id)
-        var availability = new Availability
-        {
-            PersonnelId = user.Id,   // viktig!
-            Date        = dto.Date,
-            StartTime   = dto.StartTime,
-            EndTime     = dto.EndTime,
-            Notes       = dto.Notes
-        };
-
-        await _availabilityRepository.AddAsync(availability);
-
-        var resultDto = new AvailabilityDto
-        {
-            Id            = availability.Id,
-            PersonnelId   = availability.PersonnelId,
-            PersonnelName = user.FullName,
-            Date          = availability.Date,
-            StartTime     = availability.StartTime,
-            EndTime       = availability.EndTime,
-            Notes         = availability.Notes
-        };
-
-        return CreatedAtAction(nameof(Get), new { id = availability.Id }, resultDto);
+        return Unauthorized("Could not read user id from token.");
     }
+
+    var user = await _userManager.FindByIdAsync(userId);
+    if (user == null)
+    {
+        return BadRequest($"No Identity user found with Id={userId}");
+    }
+
+    var availability = new Availability
+    {
+        PersonnelId = user.Id,
+        Date        = dto.Date,
+        StartTime   = dto.StartTime,
+        EndTime     = dto.EndTime,
+        Notes       = dto.Notes
+    };
+
+    await _availabilityRepository.AddAsync(availability);
+
+    var resultDto = new AvailabilityDto
+    {
+        Id            = availability.Id,
+        PersonnelId   = availability.PersonnelId,
+        PersonnelName = user.FullName,
+        Date          = availability.Date,
+        StartTime     = availability.StartTime,
+        EndTime       = availability.EndTime,
+        Notes         = availability.Notes
+    };
+
+    return CreatedAtAction(nameof(Get), new { id = availability.Id }, resultDto);
+}
+
 
 
     // --------------------------------------------------------------------
@@ -147,62 +128,87 @@ public class AvailabilityApiController : ControllerBase
     // Kun eier selv eller Admin får lov å oppdatere
     // --------------------------------------------------------------------
     [HttpPut("update/{id:int}")]
-    [Authorize(Roles = "Personnel,Admin")]
-    public async Task<ActionResult> Update(int id, [FromBody] AvailabilityCreateDto dto)
+[Authorize(Roles = "Personnel,Admin")]
+public async Task<ActionResult> Update(int id, [FromBody] AvailabilityCreateDto dto)
+{
+    if (!ModelState.IsValid) return BadRequest(ModelState);
+
+    var entity = await _availabilityRepository.GetByIdAsync(id);
+    if (entity == null) return NotFound();
+
+    var userId = GetCurrentUserId();
+    if (string.IsNullOrEmpty(userId))
     {
-        if (!ModelState.IsValid) return BadRequest(ModelState);
-
-        var entity = await _availabilityRepository.GetByIdAsync(id);
-        if (entity == null) return NotFound();
-
-        var currentUser = await _userManager.GetUserAsync(User);
-        if (currentUser == null)
-        {
-            return Unauthorized();
-        }
-
-        var isAdmin = await _userManager.IsInRoleAsync(currentUser, "Admin");
-
-        // Hvis ikke admin → må være sin egen availability
-        if (!isAdmin && entity.PersonnelId != currentUser.Id)
-        {
-            return Forbid(); // 403
-        }
-
-        entity.Date = dto.Date;
-        entity.StartTime = dto.StartTime;
-        entity.EndTime = dto.EndTime;
-        entity.Notes = dto.Notes;
-
-        await _availabilityRepository.UpdateAsync(entity);
-        return NoContent();
+        return Unauthorized("Could not read user id from token.");
     }
+
+    // Bruk roller direkte fra claims (det er billigere enn å slå opp i DB)
+    var isAdmin = User.IsInRole("Admin");
+
+    // Ikke admin → må være eier av availability
+    if (!isAdmin && entity.PersonnelId != userId)
+    {
+        return Forbid(); // 403
+    }
+
+    entity.Date      = dto.Date;
+    entity.StartTime = dto.StartTime;
+    entity.EndTime   = dto.EndTime;
+    entity.Notes     = dto.Notes;
+
+    await _availabilityRepository.UpdateAsync(entity);
+    return NoContent();
+}
+
 
     // --------------------------------------------------------------------
     // DELETE: api/availability/delete/5
     // Kun eier selv eller Admin får lov å slette
     // --------------------------------------------------------------------
     [HttpDelete("delete/{id:int}")]
-    [Authorize(Roles = "Personnel,Admin")]
-    public async Task<ActionResult> Delete(int id)
+[Authorize(Roles = "Personnel,Admin")]
+public async Task<ActionResult> Delete(int id)
+{
+    var entity = await _availabilityRepository.GetByIdAsync(id);
+    if (entity == null) return NotFound();
+
+    var userId = GetCurrentUserId();
+    if (string.IsNullOrEmpty(userId))
     {
-        var entity = await _availabilityRepository.GetByIdAsync(id);
-        if (entity == null) return NotFound();
-
-        var currentUser = await _userManager.GetUserAsync(User);
-        if (currentUser == null)
-        {
-            return Unauthorized();
-        }
-
-        var isAdmin = await _userManager.IsInRoleAsync(currentUser, "Admin");
-
-        if (!isAdmin && entity.PersonnelId != currentUser.Id)
-        {
-            return Forbid();
-        }
-
-        await _availabilityRepository.DeleteAsync(id);
-        return NoContent();
+        return Unauthorized("Could not read user id from token.");
     }
+
+    var isAdmin = User.IsInRole("Admin");
+
+    if (!isAdmin && entity.PersonnelId != userId)
+    {
+        return Forbid();
+    }
+
+    await _availabilityRepository.DeleteAsync(id);
+    return NoContent();
+}
+private string? GetCurrentUserId()
+{
+    var nameIdClaims = User.Claims
+        .Where(c => c.Type == ClaimTypes.NameIdentifier)
+        .ToList();
+
+    if (!nameIdClaims.Any())
+    {
+        var claimsDump = string.Join(", ",
+            User.Claims.Select(c => $"{c.Type}={c.Value}"));
+        Console.WriteLine($"[AvailabilityApiController] No NameIdentifier claim. Claims: {claimsDump}");
+        return null;
+    }
+
+    // SISTE NameIdentifier = GUID-en fra AspNetUsers.Id
+    var userId = nameIdClaims.Last().Value;
+
+    Console.WriteLine(
+        $"[AvailabilityApiController] NameId claims: {string.Join(" | ", nameIdClaims.Select(c => c.Value))}. Using userId={userId}");
+
+    return userId;
+}
+
 }

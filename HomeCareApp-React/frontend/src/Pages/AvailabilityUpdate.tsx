@@ -1,76 +1,53 @@
-// src/availability/AvailabilityUpdatePage.tsx
 import React, { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import AvailabilityForm from "./AvailabilityForm";
 import { Availability } from "../types/Availability";
-import * as AvailabiliyService from "./AvailabilityService";
-
-
-const API_URL = import.meta.env.VITE_API_URL;
+import { fetchAvailabilities, updateAvailability } from "./AvailabilityService";
 
 const AvailabilityUpdate: React.FC = () => {
-  const { availabilityId } = useParams<{ availabilityId: string }>(); // gets id from URL
-  const navigate = useNavigate(); // create navigate function
+  const { availabilityId } = useParams<{ availabilityId: string }>();
+  const navigate = useNavigate();
 
   const [availability, setAvailability] = useState<Availability | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
+  // Hent availability fra API når komponenten mountes
   useEffect(() => {
-    const fetchAvailability = async () => {
+    const loadAvailability = async () => {
+      if (!availabilityId) {
+        setError("Mangler availability-id i URL-en.");
+        setLoading(false);
+        return;
+      }
+
       try {
-        const response = await fetch(
-          `${API_URL}/api/availability/${availabilityId}`, // GET én availability
-          { credentials: "include" }
-        );
-
-        if (!response.ok) {
-          throw new Error("Network response was not ok");
-        }
-
-        const data: Availability = await response.json();
+        const data = await fetchAvailabilities(availabilityId); // bruker service med auth-header
         setAvailability(data);
       } catch (err) {
-        setError("Failed to fetch availability");
         console.error("There was a problem with the fetch operation:", err);
+        setError("Kunne ikke laste tilgjengeligheten.");
       } finally {
         setLoading(false);
       }
     };
 
-    if (availabilityId) {
-      fetchAvailability();
-    }
+    loadAvailability();
   }, [availabilityId]);
 
   const handleAvailabilityUpdated = async (updated: Availability) => {
     try {
-      const data=await AvailabiliyService.updateAvailability(updated.id, updated);
-      const response = await fetch(
-        `${API_URL}/api/availability/update/${updated.id}`,
-        {
-          method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          credentials: "include",
-          body: JSON.stringify(updated),
-        }
-      );
-
-      if (!response.ok) {
-        throw new Error("Network response was not ok");
-      }
-
+      await updateAvailability(updated.id, updated); 
       console.log("Availability updated successfully");
-      navigate("/availability"); // tilbake til lista
+      navigate("/availability");
     } catch (error) {
-      console.error("There was a problem with the fetch operation:", error);
+      console.error("There was a problem with the update operation:", error);
+      setError("Kunne ikke oppdatere tilgjengeligheten.");
     }
   };
 
   if (loading) return <p>Loading...</p>;
-  if (error) return <p>{error}</p>;
+  if (error) return <p style={{ color: "red" }}>{error}</p>;
   if (!availability) return <p>No availability found</p>;
 
   return (
