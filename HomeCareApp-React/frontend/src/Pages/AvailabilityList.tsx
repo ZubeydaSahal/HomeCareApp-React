@@ -47,11 +47,6 @@ const AvailabilityList: React.FC = () => {
   });
 
   const handleAvailabilityDeleted = async (id: number) => {
-    const confirmDelete = window.confirm(
-      `Are you sure you want to delete this availability ${id}?`
-    );
-    if (!confirmDelete) return;
-
     try {
       await AvailabilityService.deleteAvailability(id);
       setAvailabilities((prev) => prev.filter((a) => a.id !== id));

@@ -111,34 +111,35 @@ public async Task<ActionResult> Create([FromBody] AvailabilityCreateDto dto)
 
     // PUT: api/availability/update/5
     [HttpPut("update/{id:int}")]
-    [Authorize(Roles = "Personnel,Admin")]
-    public async Task<ActionResult> Update(int id, [FromBody] AvailabilityCreateDto dto)
-    {
-        if (!ModelState.IsValid) return BadRequest(ModelState);
+    //[Authorize(Roles = "Personnel,Admin")]
+[AllowAnonymous] // midlertidig
+public async Task<ActionResult> Update(int id, [FromBody] AvailabilityCreateDto dto)
+{
+    if (!ModelState.IsValid) return BadRequest(ModelState);
 
-        var entity = await _availabilityRepository.GetByIdAsync(id);
-        if (entity == null) return NotFound();
+    var entity = await _availabilityRepository.GetByIdAsync(id);
+    if (entity == null) return NotFound();
 
-        // ev. sjekk at innlogget bruker eier denne availabilityen
+    entity.Date = dto.Date;
+    entity.StartTime = dto.StartTime;
+    entity.EndTime = dto.EndTime;
+    entity.Notes = dto.Notes;
 
-        entity.Date = dto.Date;
-        entity.StartTime = dto.StartTime;
-        entity.EndTime = dto.EndTime;
-        entity.Notes = dto.Notes;
+    await _availabilityRepository.UpdateAsync(entity);
+    return NoContent();
+}
 
-        await _availabilityRepository.UpdateAsync(entity);
-        return NoContent();
-    }
+    
 
     // DELETE: api/availability/delete/5
     [HttpDelete("delete/{id:int}")]
-    [Authorize(Roles = "Personnel,Admin")]
-    public async Task<ActionResult> Delete(int id)
-    {
-        var entity = await _availabilityRepository.GetByIdAsync(id);
-        if (entity == null) return NotFound();
+    [AllowAnonymous] // midelertidig
+public async Task<ActionResult> Delete(int id)
+{
+    var entity = await _availabilityRepository.GetByIdAsync(id);
+    if (entity == null) return NotFound();
 
-        await _availabilityRepository.DeleteAsync(id);
-        return NoContent();
-    }
+    await _availabilityRepository.DeleteAsync(id);
+    return NoContent();
+}
 }
