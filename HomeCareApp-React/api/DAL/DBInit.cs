@@ -1,10 +1,26 @@
-using Microsoft.AspNetCore.Identity;
 using HomeCareApp.Models;
+using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace HomeCareApp.DAL
 {
-    public static class DbInit
+    public static class DBInit
     {
+   
+        public static void Seed(IApplicationBuilder app)
+        {
+            using var serviceScope = app.ApplicationServices.CreateScope();
+            var services = serviceScope.ServiceProvider;
+
+            var db = services.GetRequiredService<HomeCareDbContext>();
+            var userManager = services.GetRequiredService<UserManager<User>>();
+            var roleManager = services.GetRequiredService<RoleManager<IdentityRole>>();
+
+            // Kjør async seed synkront ved oppstart
+            SeedAsync(db, userManager, roleManager).GetAwaiter().GetResult();
+        }
+
         public static async Task SeedAsync(
             HomeCareDbContext db,
             UserManager<User> um,
@@ -35,12 +51,10 @@ namespace HomeCareApp.DAL
                 Role = "Admin" 
             };
 
-              var adminResult = await um.CreateAsync(admin, "Pass123!");
+            var adminResult = await um.CreateAsync(admin, "Pass123!");
             if (adminResult.Succeeded)
             {
-                // Admin-rolle
                 await um.AddToRoleAsync(admin, "Admin");
-
                 await um.AddToRoleAsync(admin, "Personnel");
             }
 

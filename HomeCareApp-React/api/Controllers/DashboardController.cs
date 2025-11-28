@@ -1,29 +1,27 @@
-// Controllers/DashboardController.cs
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using HomeCareApp.Service.User;
-using HomeCareApp.Service.Appointments;
-using HomeCareApp.Service.Availabilitys;
-using HomeCareApp.ViewModels;
+using Microsoft.Extensions.Logging;
+using HomeCareApp.DAL;
 using HomeCareApp.Models;
+using HomeCareApp.ViewModels;
 
 [Authorize] // you have to be logged in
 public class DashboardController : Controller
 {
-    private readonly IUserService _userService;
-    private readonly IAppointmentService _appointmentService;
-    private readonly IAvailabilityService _availabilityService;
+    private readonly IUserRepository _userRepository;
+    private readonly IAppointmentRepository _appointmentRepository;
+    private readonly IAvailabilityRepository _availabilityRepository;
     private readonly ILogger<DashboardController> _logger;
 
     public DashboardController(
-        IUserService userService,
-        IAppointmentService appointmentService,
-        IAvailabilityService availabilityService,
+        IUserRepository userRepository,
+        IAppointmentRepository appointmentRepository,
+        IAvailabilityRepository availabilityRepository,
         ILogger<DashboardController> logger)
     {
-        _userService = userService;
-        _appointmentService = appointmentService;
-        _availabilityService = availabilityService;
+        _userRepository = userRepository;
+        _appointmentRepository = appointmentRepository;
+        _availabilityRepository = availabilityRepository;
         _logger = logger;
     }
 
@@ -37,11 +35,11 @@ public class DashboardController : Controller
         {
             _logger.LogInformation("Dashboard.Personnel accessed by {User}", User.Identity?.Name);
 
-            var currentUser = await _userService.GetCurrentUserAsync(User);
+            var currentUser = await _userRepository.GetUserAsync(User);
             if (currentUser == null)
             {
                 _logger.LogWarning("Personnel dashboard access failed: no logged-in user");
-                return RedirectToAction("Login", "User");
+                return RedirectToAction("Login", "Login");
             }
 
             var viewModel = await BuildPersonnelViewModelAsync(currentUser.Id);
@@ -65,11 +63,11 @@ public class DashboardController : Controller
         {
             _logger.LogInformation("Dashboard.Patient accessed by {User}", User.Identity?.Name);
 
-            var currentUser = await _userService.GetCurrentUserAsync(User);
+            var currentUser = await _userRepository.GetUserAsync(User);
             if (currentUser == null)
             {
                 _logger.LogWarning("Patient dashboard access failed: no logged-in user");
-                return RedirectToAction("Login", "User");
+                return RedirectToAction("Login", "Login");
             }
 
             var viewModel = await BuildPatientViewModelAsync(currentUser.Id);
@@ -92,18 +90,46 @@ public class DashboardController : Controller
         {
             _logger.LogInformation("Building PersonnelViewModel for PersonnelId {Id}", personnelId);
 
-            var personnel = await _userService.GetCurrentUserAsync(User);
-            var appointments = await _appointmentService.GetByPersonnelIdAsync(personnelId);
-            var upcomingAppointments = await _appointmentService.GetUpcomingByPersonnelIdAsync(personnelId);
-            var recentAppointments = await _appointmentService.GetRecentByPersonnelIdAsync(personnelId);
-            var upcomingAvailability = await _availabilityService.GetUpcomingByPersonnelIdAsync(personnelId);
+            var personnel = await _userRepository.GetUserAsync(User);
+
+            // Hent alle avtaler og filtrer på denne pleieren
+            var allAppointments = await _appointmentRepository.GetAllAsync();
+            var appointments = allAppointments
+                .Where(a => a.Availability != null &&
+                            a.Availability.PersonnelId == personnelId)
+                .ToList();
 
             var today = DateTime.Today;
             var weekStart = today.AddDays(-(int)today.DayOfWeek);
             var weekEnd = weekStart.AddDays(7);
 
             var appointmentsThisWeek = appointments
-                .Where(a => a.Availability.Date >= weekStart && a.Availability.Date < weekEnd)
+                .Where(a => a.Availability!.Date >= weekStart &&
+                            a.Availability!.Date < weekEnd)
+                .ToList();
+
+            // Upcoming/recent appointments
+            var upcomingAppointments = appointments
+                .Where(a => a.Availability!.Date >= today &&
+                            a.Status != "Cancelled")
+                .OrderBy(a => a.Availability!.Date)
+                .ThenBy(a => a.StartTime)
+                .ToList();
+
+            var recentAppointments = appointments
+                .Where(a => a.Availability!.Date < today ||
+                            a.Status == "Completed")
+                .OrderByDescending(a => a.Availability!.Date)
+                .ThenByDescending(a => a.StartTime)
+                .ToList();
+
+            // Hent all availability og filtrer på denne pleieren
+            var allAvail = await _availabilityRepository.GetAllAsync();
+            var upcomingAvailability = allAvail
+                .Where(a => a.PersonnelId == personnelId &&
+                            a.Date >= today)
+                .OrderBy(a => a.Date)
+                .ThenBy(a => a.StartTime)
                 .ToList();
 
             _logger.LogInformation("Personnel {Id} has {Count} appointments this week",
@@ -117,15 +143,22 @@ public class DashboardController : Controller
                 AppointmentsThisWeek = appointmentsThisWeek.Count,
                 PendingAppointments = appointments.Count(a => a.Status == "Booked"),
                 CancelledAppointments = appointments.Count(a => a.Status == "Cancelled"),
-                UpcomingAppointments = upcomingAppointments.Take(5).Select(MapToAppointmentSummary).ToList(),
-                RecentAppointments = recentAppointments.Select(MapToAppointmentSummary).ToList(),
-                UpcomingAvailability = upcomingAvailability.Select(MapToAvailabilitySummary).ToList()
+                UpcomingAppointments = upcomingAppointments
+                    .Take(5)
+                    .Select(MapToAppointmentSummary)
+                    .ToList(),
+                RecentAppointments = recentAppointments
+                    .Select(MapToAppointmentSummary)
+                    .ToList(),
+                UpcomingAvailability = upcomingAvailability
+                    .Select(MapToAvailabilitySummary)
+                    .ToList()
             };
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error building PersonnelViewModel for {Id}", personnelId);
-            throw; // rethrow so the caller handles it
+            throw;
         }
     }
 
@@ -138,26 +171,40 @@ public class DashboardController : Controller
         {
             _logger.LogInformation("Building PatientViewModel for PatientId {Id}", patientId);
 
-            var patient = await _userService.GetCurrentUserAsync(User);
-            var appointments = await _appointmentService.GetByClientIdAsync(patientId);
-            var personnel = await _userService.GetPersonnelAsync();
+            var patient = await _userRepository.GetUserAsync(User);
+            var appointments = await _appointmentRepository.GetByClientIdAsync(patientId);
+            var personnel = await _userRepository.GetUsersInRoleAsync("Personnel");
 
             var today = DateTime.Today;
+
             var upcomingAppointments = appointments
-                .Where(a => a.Availability.Date >= today && a.Status != "Cancelled")
+                .Where(a => a.Availability != null &&
+                            a.Availability.Date >= today &&
+                            a.Status != "Cancelled")
+                .OrderBy(a => a.Availability!.Date)
+                .ThenBy(a => a.StartTime)
                 .ToList();
 
             var appointmentHistory = appointments
-                .Where(a => a.Availability.Date < today || a.Status == "Completed")
+                .Where(a => a.Availability != null &&
+                            (a.Availability.Date < today || a.Status == "Completed"))
+                .OrderByDescending(a => a.Availability!.Date)
+                .ThenByDescending(a => a.StartTime)
                 .ToList();
 
+            // Hent all availability én gang og gjenbruk
+            var allAvail = await _availabilityRepository.GetAllAsync();
             var availableCaregivers = new List<CaregiverSummary>();
 
             foreach (var p in personnel)
             {
-                var availability = await _availabilityService.GetUpcomingByPersonnelIdAsync(p.Id);
-                var nextAvailable = availability.FirstOrDefault();
+                var availabilityForP = allAvail
+                    .Where(a => a.PersonnelId == p.Id && a.Date >= today)
+                    .OrderBy(a => a.Date)
+                    .ThenBy(a => a.StartTime)
+                    .ToList();
 
+                var nextAvailable = availabilityForP.FirstOrDefault();
                 if (nextAvailable != null)
                 {
                     availableCaregivers.Add(new CaregiverSummary
@@ -165,7 +212,7 @@ public class DashboardController : Controller
                         PersonnelId = p.Id,
                         PersonnelName = p.FullName,
                         Email = p.Email ?? "",
-                        AvailableSlots = availability.Count,
+                        AvailableSlots = availabilityForP.Count,
                         NextAvailableDate = nextAvailable.Date
                     });
                 }
@@ -178,9 +225,16 @@ public class DashboardController : Controller
             {
                 PatientId = patientId,
                 PatientName = patient?.FullName ?? "Unknown",
-                UpcomingAppointments = upcomingAppointments.Select(MapToAppointmentSummary).ToList(),
-                AppointmentHistory = appointmentHistory.Take(10).Select(MapToAppointmentSummary).ToList(),
-                AvailableCaregivers = availableCaregivers.Take(5).ToList(),
+                UpcomingAppointments = upcomingAppointments
+                    .Select(MapToAppointmentSummary)
+                    .ToList(),
+                AppointmentHistory = appointmentHistory
+                    .Take(10)
+                    .Select(MapToAppointmentSummary)
+                    .ToList(),
+                AvailableCaregivers = availableCaregivers
+                    .Take(5)
+                    .ToList(),
                 TotalAppointments = appointments.Count,
                 CompletedAppointments = appointments.Count(a => a.Status == "Completed")
             };
@@ -188,7 +242,7 @@ public class DashboardController : Controller
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error building PatientViewModel for {Id}", patientId);
-            throw; // rethrow to controller action
+            throw;
         }
     }
 
@@ -232,7 +286,7 @@ public class DashboardController : Controller
                 StartTime = availability.StartTime,
                 EndTime = availability.EndTime,
                 Notes = availability.Notes,
-                IsBooked = availability.Appointment != null
+                IsBooked = availability.Appointment is not null
             };
         }
         catch (Exception ex)

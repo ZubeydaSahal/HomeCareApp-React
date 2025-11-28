@@ -1,20 +1,28 @@
-using System.ComponentModel.DataAnnotations;
+using System;
 
 namespace HomeCareApp.DTOs
 {
     public class AvailabilityDto
     {
+        public int Id { get; set; }
+
         public string PersonnelId { get; set; } = string.Empty;
 
-        [Required]
+        // Valgfritt: navn på den ansatte, hentet fra User
+        public string? PersonnelName { get; set; }
+
         public DateTime Date { get; set; }
 
-        [Required]
         public TimeSpan StartTime { get; set; }
 
-        [Required]
         public TimeSpan EndTime { get; set; }
 
         public string? Notes { get; set; }
+
+        // Valgfritt: kun ID til avtale
+        public int? AppointmentId { get; set; }
+
+        // Praktisk flagg til frontend
+        public bool IsBooked => AppointmentId.HasValue;
     }
 }

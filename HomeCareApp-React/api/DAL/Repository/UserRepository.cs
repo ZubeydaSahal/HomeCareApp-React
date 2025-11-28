@@ -1,7 +1,7 @@
 using Microsoft.AspNetCore.Identity;
 using HomeCareApp.Models;
 
-namespace HomeCareApp.DAL.Repository.User;
+namespace HomeCareApp.DAL;
 
 public class UserRepository : IUserRepository
 {

@@ -1,37 +1,34 @@
+using HomeCareApp.DAL;
 using HomeCareApp.Models;
-using HomeCareApp.Service.Appointments;
-using HomeCareApp.Service.Availabilities;
 using HomeCareApp.ViewModels.Appointment;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
-using Serilog; 
+using Serilog;
 using AppUser = HomeCareApp.Models.User;
-using HomeCareApp.DTOs;
 
 namespace HomeCareApp.Controllers
 {
-    
     [Authorize]
-    public class AppointmentController : ControllerBase
+    public class AppointmentController : Controller
     {
-        private readonly IAppointmentService _appointmentService;
-        private readonly IAvailabilityService _availabilityService;
+        private readonly IAppointmentRepository _appointmentRepository;
+        private readonly IAvailabilityRepository _availabilityRepository;
         private readonly UserManager<AppUser> _userManager;
 
         public AppointmentController(
-            IAppointmentService appointmentService,
-            IAvailabilityService availabilityService,
+            IAppointmentRepository appointmentRepository,
+            IAvailabilityRepository availabilityRepository,
             UserManager<AppUser> userManager)
         {
-            _appointmentService = appointmentService;
-            _availabilityService = availabilityService;
+            _appointmentRepository = appointmentRepository;
+            _availabilityRepository = availabilityRepository;
             _userManager = userManager;
         }
 
         // ===========================================================
-        // INDEX -show all appointments
+        // INDEX - show all appointments
         // ===========================================================
         [Authorize(Roles = "Personnel,Patient,Admin")]
         public async Task<IActionResult> Index()
@@ -42,7 +39,7 @@ namespace HomeCareApp.Controllers
 
                 if (User.IsInRole("Personnel") || User.IsInRole("Admin"))
                 {
-                    var all = await _appointmentService.GetAllAsync() ?? new List<Appointment>();
+                    var all = await _appointmentRepository.GetAllAsync() ?? new List<Appointment>();
                     Log.Information("Loaded {Count} appointments for Personnel/Admin", all.Count);
                     return View(all);
                 }
@@ -54,7 +51,7 @@ namespace HomeCareApp.Controllers
                     return Challenge();
                 }
 
-                var mine = await _appointmentService.GetByClientIdAsync(userId) ?? new List<Appointment>();
+                var mine = await _appointmentRepository.GetByClientIdAsync(userId) ?? new List<Appointment>();
                 Log.Information("Loaded {Count} appointments for patient {UserId}", mine.Count, userId);
                 return View(mine);
             }
@@ -76,7 +73,7 @@ namespace HomeCareApp.Controllers
             {
                 Log.Information("AppointmentController.Create(GET) called by {User}", User.Identity?.Name);
 
-                var availabilities = await _availabilityService.GetAllAsync() ?? new List<Availability>();
+                var availabilities = await _availabilityRepository.GetAllAsync() ?? new List<Availability>();
                 var freeSlots = availabilities.Where(a => a.Appointment == null).ToList();
 
                 var isStaff = User.IsInRole("Personnel") || User.IsInRole("Admin");
@@ -139,7 +136,7 @@ namespace HomeCareApp.Controllers
                 if (vm.StartTime >= vm.EndTime)
                     ModelState.AddModelError(nameof(vm.EndTime), "End time must be after start time.");
 
-                var slot = await _availabilityService.GetByIdAsync(vm.AvailabilityId);
+                var slot = await _availabilityRepository.GetByIdAsync(vm.AvailabilityId);
                 if (slot is null)
                 {
                     ModelState.AddModelError(nameof(vm.AvailabilityId), "Selected availability does not exist.");
@@ -153,7 +150,7 @@ namespace HomeCareApp.Controllers
                 {
                     Log.Warning("Appointment Create validation failed for user {User}", User.Identity?.Name);
 
-                    var availabilities = await _availabilityService.GetAllAsync() ?? new List<Availability>();
+                    var availabilities = await _availabilityRepository.GetAllAsync() ?? new List<Availability>();
                     var freeSlots = availabilities.Where(a => a.Appointment == null).ToList();
                     var isStaff = User.IsInRole("Personnel") || User.IsInRole("Admin");
 
@@ -186,7 +183,7 @@ namespace HomeCareApp.Controllers
                     Status = vm.Status
                 };
 
-                await _appointmentService.CreateAsync(appointment);
+                await _appointmentRepository.CreateAsync(appointment);
                 Log.Information("Appointment {AppointmentId} created by {User}", appointment.Id, User.Identity?.Name);
 
                 return RedirectToAction(nameof(Index));
@@ -209,7 +206,7 @@ namespace HomeCareApp.Controllers
             {
                 Log.Information("Loading appointment {Id} for Edit(GET)", id);
 
-                var appt = await _appointmentService.GetByIdAsync(id);
+                var appt = await _appointmentRepository.GetByIdAsync(id);
                 if (appt == null)
                 {
                     Log.Warning("Edit(GET) NotFound for appointment {Id}", id);
@@ -247,7 +244,7 @@ namespace HomeCareApp.Controllers
                     IsPersonnel = isStaff
                 };
 
-                var allAvail = await _availabilityService.GetAllAsync() ?? new List<Availability>();
+                var allAvail = await _availabilityRepository.GetAllAsync() ?? new List<Availability>();
                 var freeSlots = allAvail.Where(a => a.Appointment == null || a.Id == appt.AvailabilityId).ToList();
 
                 vm.AvailabilityOptions = new SelectList(
@@ -287,7 +284,7 @@ namespace HomeCareApp.Controllers
             {
                 Log.Information("Appointment Edit(POST) called for Id {Id}", id);
 
-                var appt = await _appointmentService.GetByIdAsync(id);
+                var appt = await _appointmentRepository.GetByIdAsync(id);
                 if (appt == null)
                 {
                     Log.Warning("Edit(POST) NotFound for appointment {Id}", id);
@@ -317,7 +314,7 @@ namespace HomeCareApp.Controllers
                 if (vm.StartTime >= vm.EndTime)
                     ModelState.AddModelError(nameof(vm.EndTime), "End time must be after start time.");
 
-                var selected = await _availabilityService.GetByIdAsync(vm.AvailabilityId);
+                var selected = await _availabilityRepository.GetByIdAsync(vm.AvailabilityId);
                 if (selected is null)
                     ModelState.AddModelError(nameof(vm.AvailabilityId), "Selected availability does not exist.");
                 else if (selected.Appointment != null && selected.Id != appt.AvailabilityId)
@@ -330,7 +327,7 @@ namespace HomeCareApp.Controllers
                 {
                     Log.Warning("Appointment Edit validation failed for Id {Id}", id);
 
-                    var allAvail = await _availabilityService.GetAllAsync() ?? new List<Availability>();
+                    var allAvail = await _availabilityRepository.GetAllAsync() ?? new List<Availability>();
                     var freeSlots = allAvail.Where(a => a.Appointment == null || a.Id == appt.AvailabilityId).ToList();
 
                     vm.IsPersonnel = isStaff;
@@ -367,7 +364,7 @@ namespace HomeCareApp.Controllers
                     appt.Status = "Booked";
                 }
 
-                await _appointmentService.UpdateAsync(appt);
+                await _appointmentRepository.UpdateAsync(appt);
                 Log.Information("Appointment {Id} updated successfully by {User}", id, User.Identity?.Name);
 
                 TempData["Success"] = "Appointment updated.";
@@ -391,7 +388,7 @@ namespace HomeCareApp.Controllers
             {
                 Log.Information("Delete(GET) called for appointment {Id}", id);
 
-                var appointment = await _appointmentService.GetByIdAsync(id);
+                var appointment = await _appointmentRepository.GetByIdAsync(id);
                 if (appointment == null)
                 {
                     Log.Warning("Delete(GET) NotFound for appointment {Id}", id);
@@ -427,7 +424,7 @@ namespace HomeCareApp.Controllers
             {
                 Log.Information("DeleteConfirmed(POST) called for appointment {Id}", id);
 
-                var appointment = await _appointmentService.GetByIdAsync(id);
+                var appointment = await _appointmentRepository.GetByIdAsync(id);
                 if (appointment == null)
                 {
                     Log.Warning("DeleteConfirmed(POST) NotFound for appointment {Id}", id);
@@ -452,7 +449,7 @@ namespace HomeCareApp.Controllers
                     }
                 }
 
-                await _appointmentService.DeleteAsync(id);
+                await _appointmentRepository.DeleteAsync(id);
                 Log.Information("Appointment {Id} successfully deleted by {User}", id, User.Identity?.Name);
 
                 TempData["Success"] = "Appointment cancelled successfully.";

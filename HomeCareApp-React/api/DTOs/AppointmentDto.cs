@@ -1,26 +1,19 @@
 using System;
 using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
 
-namespace HomeCareApp.Models
+namespace HomeCareApp.DTOs
 {
-    public class Appointment
+    public class AppointmentDto
     {
-        public int Id { get; set; }
+        public int Id { get; set; }  
 
         [Required]
         [Display(Name = "Client")]
         public string ClientId { get; set; } = string.Empty;
 
-        [ForeignKey(nameof(ClientId))]
-        public User? Client { get; set; }     // 👈 navigasjon til klient
-
         [Required]
         [Display(Name = "Availability")]
         public int AvailabilityId { get; set; }
-
-        [ForeignKey(nameof(AvailabilityId))]
-        public Availability? Availability { get; set; }  // 👈 navigasjon til Availability
 
         [Required(ErrorMessage = "Task description is required.")]
         [StringLength(200, ErrorMessage = "Task description cannot be longer than 200 characters.")]
@@ -37,5 +30,8 @@ namespace HomeCareApp.Models
         [Required]
         [RegularExpression(@"^(Booked|Completed|Cancelled)$", ErrorMessage = "Invalid status value.")]
         public string Status { get; set; } = "Booked";
+
+        public string? ClientName { get; set; }
+        public string? PersonnelName { get; set; }
     }
 }

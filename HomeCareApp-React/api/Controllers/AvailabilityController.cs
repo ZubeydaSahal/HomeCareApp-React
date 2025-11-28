@@ -2,29 +2,24 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using HomeCareApp.Models;
-using HomeCareApp.Service.Availabilitys;
+using HomeCareApp.DAL;           
 using AppUser = HomeCareApp.Models.User;
-using HomeCareApp.DTOs;
-using Microsoft.VisualBasic;
-
 
 namespace HomeCareApp.Controllers
 {
-    [ApiController]
-    [Route("api/[controller]")]
     [Authorize]
     public class AvailabilityController : Controller
     {
-        private readonly IAvailabilityService _availabilityService;
+        private readonly IAvailabilityRepository _availabilityRepository;   
         private readonly ILogger<AvailabilityController> _logger;
         private readonly UserManager<AppUser> _userManager;
 
         public AvailabilityController(
-            IAvailabilityService availabilityService,
+            IAvailabilityRepository availabilityRepository,
             ILogger<AvailabilityController> logger,
             UserManager<AppUser> userManager)
         {
-            _availabilityService = availabilityService;
+            _availabilityRepository = availabilityRepository;
             _logger = logger;
             _userManager = userManager;
         }
@@ -39,7 +34,7 @@ namespace HomeCareApp.Controllers
             {
                 _logger.LogInformation("Availability.Index called by {User}", User.Identity?.Name);
 
-                var availabilities = await _availabilityService.GetAllAsync() ?? new List<Availability>();
+                var availabilities = await _availabilityRepository.GetAllAsync() ?? new List<Availability>();
                 _logger.LogInformation("Loaded {Count} availabilities", availabilities.Count);
 
                 return View(availabilities);
@@ -50,51 +45,6 @@ namespace HomeCareApp.Controllers
                 TempData["Error"] = "Unexpected error occurred.";
                 return RedirectToAction("Error", "Home");
             }
-        }
-
-        // API endpoint - list all availabilities
-        [HttpGet("list")]
-        [AllowAnonymous]
-        public async Task<IActionResult> List()
-        {
-            try
-            {
-                _logger.LogInformation("Availability.List called");
-                var availabilities = await _availabilityService.GetAllAsync() ?? new List<Availability>();
-                return Ok(availabilities);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error in Availability.List");
-                return StatusCode(500, "Internal server error");
-            }
-        }
-
-        [HttpPost("create")]
-        public async Task<IActionResult> Create([FromBody] AvailabilityDto availabilityDto)
-        {
-           if(availabilityDto == null)
-           {
-            return BadRequest("Availability data can't be null.");
-           }
-              var availability = new Availability
-              {
-                PersonnelId = availabilityDto.PersonnelId,
-                Date = availabilityDto.Date,
-                StartTime = availabilityDto.StartTime,
-                EndTime = availabilityDto.EndTime,
-                Notes = availabilityDto.Notes
-              };
-
-            bool retunOk = await _availabilityService.AddAsync(availability);
-            if(retunOk)
-            return CreatedAtAction(nameof(Create), new { id = availability.Id }, availability);
-            
-            _logger.LogWarning("[AvailabilityController] Create: Unable to create availability {@availability}", availability);
-            return StatusCode(500, "A problem in the internal server occurred.");
-
-               
-             
         }
 
         // -----------------------------
@@ -157,7 +107,7 @@ namespace HomeCareApp.Controllers
                     return View(availability);
                 }
 
-                await _availabilityService.AddAsync(availability);
+                await _availabilityRepository.AddAsync(availability);         
                 _logger.LogInformation("Availability {Id} created by {User}", availability.Id, userId);
 
                 TempData["Success"] = "Availability created.";
@@ -171,70 +121,6 @@ namespace HomeCareApp.Controllers
             }
         }
 
-        [HttpGet("{id:int}")]
-        [AllowAnonymous]
-        public async Task<IActionResult> GetAvailability(int id)
-        {
-            var availability = await _availabilityService.GetByIdAsync(id);
-            if (availability == null)
-            {
-                _logger.LogError(
-                    "[AvailabilityController] Availability not found for Id {Id:0000}", 
-                    id
-                );
-                return NotFound("Availability not found for the given Id");
-            }
-
-            return Ok(availability);
-        }
-
-        // API endpoint - update availability
-        [HttpPut("update/{id:int}")]
-        public async Task<IActionResult> Update(int id, [FromBody] AvailabilityDto availabilityDto)
-        {
-            if (availabilityDto == null)
-            {
-                return BadRequest("Availability data can't be null.");
-            }
-
-            var availability = await _availabilityService.GetByIdAsync(id);
-            if (availability == null)
-            {
-                _logger.LogError("Availability not found for Id {Id}", id);
-                return NotFound("Availability not found");
-            }
-
-            availability.Date = availabilityDto.Date;
-            availability.StartTime = availabilityDto.StartTime;
-            availability.EndTime = availabilityDto.EndTime;
-            availability.Notes = availabilityDto.Notes;
-
-            bool success = await _availabilityService.UpdateAsync(availability);
-            if (success)
-            {
-                _logger.LogInformation("Availability {Id} updated", id);
-                return Ok(availability);
-            }
-
-            _logger.LogWarning("[AvailabilityController] Update: Unable to update availability Id {Id}", id);
-            return StatusCode(500, "A problem in the internal server happened.");
-        }
-
-        [HttpDelete("delete/{id}")]
-        public async Task<IActionResult> DeleteConfirmed(int id)
-        {
-            bool returnOk = await _availabilityService.Delete(id);
-            if (!returnOk)
-            {
-                _logger.LogError("[AvailabilityController] Availability deletion failed for the AvailabilityId {AvailabilityId:0000}", id);
-                return BadRequest("Availability deletion failed");
-            }
-            return NoContent(); 
-        }
-
-        
-
-
         // -----------------------------
         // EDIT (GET)
         // -----------------------------
@@ -245,7 +131,7 @@ namespace HomeCareApp.Controllers
             {
                 _logger.LogInformation("Availability.Edit(GET) for Id {Id} by {User}", id, User.Identity?.Name);
 
-                var entity = await _availabilityService.GetByIdAsync(id);
+                var entity = await _availabilityRepository.GetByIdAsync(id); 
                 if (entity == null)
                 {
                     _logger.LogWarning("Availability.Edit(GET): NotFound Id {Id}", id);
@@ -296,7 +182,7 @@ namespace HomeCareApp.Controllers
                     return BadRequest();
                 }
 
-                var entity = await _availabilityService.GetByIdAsync(id);
+                var entity = await _availabilityRepository.GetByIdAsync(id); 
                 if (entity == null)
                 {
                     _logger.LogWarning("Availability.Edit(POST): NotFound Id {Id}", id);
@@ -335,20 +221,22 @@ namespace HomeCareApp.Controllers
 
                 if (!ModelState.IsValid)
                 {
-                    var errors = string.Join(", ", ModelState.Values
-                        .SelectMany(v => v.Errors)
-                        .Select(e => e.ErrorMessage));
-                    _logger.LogWarning("Validation failed on Edit for Id {Id}: {Errors}", id, errors);
+                    _logger.LogWarning("Validation failed on Edit for Id {Id}: {Errors}",
+                
+                       string.Join(", ", ModelState.Values
+                           .SelectMany(v => v.Errors)
+                           .Select(e => e.ErrorMessage)));
 
                     return View(model);
                 }
 
+                // Oppdater entity med verdier fra model
                 entity.Date = model.Date;
                 entity.StartTime = model.StartTime;
                 entity.EndTime = model.EndTime;
                 entity.Notes = model.Notes;
 
-                await _availabilityService.UpdateAsync(entity);
+                await _availabilityRepository.UpdateAsync(entity);        
 
                 _logger.LogInformation("Availability {Id} updated successfully by {User}", entity.Id, userId);
 
@@ -373,7 +261,7 @@ namespace HomeCareApp.Controllers
             {
                 _logger.LogInformation("Availability.Delete(GET) Id {Id} by {User}", id, User.Identity?.Name);
 
-                var entity = await _availabilityService.GetByIdAsync(id);
+                var entity = await _availabilityRepository.GetByIdAsync(id);  
                 if (entity == null)
                 {
                     _logger.LogWarning("Availability.Delete(GET): NotFound Id {Id}", id);
@@ -418,7 +306,7 @@ namespace HomeCareApp.Controllers
             {
                 _logger.LogInformation("Availability.DeleteConfirmed(POST) Id {Id} by {User}", id, User.Identity?.Name);
 
-                var entity = await _availabilityService.GetByIdAsync(id);
+                var entity = await _availabilityRepository.GetByIdAsync(id);  
                 if (entity == null)
                 {
                     _logger.LogWarning("Availability.DeleteConfirmed: NotFound Id {Id}", id);
@@ -441,7 +329,7 @@ namespace HomeCareApp.Controllers
                     return RedirectToAction(nameof(Index));
                 }
 
-                await _availabilityService.DeleteAsync(id);
+                await _availabilityRepository.DeleteAsync(id);             
                 _logger.LogInformation("Availability {Id} deleted by {User}", id, userId);
 
                 TempData["Success"] = "Availability deleted.";

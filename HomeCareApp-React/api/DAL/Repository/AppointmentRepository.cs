@@ -1,49 +1,50 @@
 using HomeCareApp.Models;
 using Microsoft.EntityFrameworkCore;
 
-namespace HomeCareApp.DAL.Repository.Appointments
+namespace HomeCareApp.DAL;
+
+public class AppointmentRepository : IAppointmentRepository
 {
-    public class AppointmentRepository : IAppointmentRepository
+    private readonly HomeCareDbContext _context;
+    public AppointmentRepository(HomeCareDbContext context)
     {
-        private readonly HomeCareDbContext _context;
+        _context = context;
+    }
 
-        public AppointmentRepository(HomeCareDbContext context)
-        {
-            _context = context;
-        }
+    public async Task<List<Appointment>> GetAllAsync()
+    {
+         var list = await _context.Appointments
+            .Include(a => a.Availability)
+            .ThenInclude(av => av.Personnel)
+            .Include(a => a.Client)
+             .ToListAsync();
 
-        public async Task<List<Appointment>> GetAllAsync()
-        {
-            var list = await _context.Appointments
-                .Include(a => a.Availability)
-                .Include(a => a.Client)
-                .ToListAsync();
-
-            return list
-                .OrderByDescending(a => a.Availability.Date)
-                .ThenByDescending(a => a.StartTime)
-                .ToList();
+        return list
+            .OrderByDescending(a => a.Availability!.Date)
+            .ThenByDescending(a => a.StartTime)
+            .ToList();
         }
 
         public async Task<Appointment?> GetByIdAsync(int id)
         {
             return await _context.Appointments
                 .Include(a => a.Availability)
+                .ThenInclude(av => av.Personnel)
                 .Include(a => a.Client)
                 .FirstOrDefaultAsync(a => a.Id == id);
         }
-        
 
         public async Task<List<Appointment>> GetByClientIdAsync(string clientId)
         {
             var list = await _context.Appointments
                 .Where(a => a.ClientId == clientId)
                 .Include(a => a.Availability)
+                .ThenInclude(av => av.Personnel)
                 .Include(a => a.Client)
                 .ToListAsync();
 
             return list
-                .OrderByDescending(a => a.Availability.Date)
+                .OrderByDescending(a => a.Availability!.Date)
                 .ThenByDescending(a => a.StartTime)
                 .ToList();
         }
@@ -75,4 +76,4 @@ namespace HomeCareApp.DAL.Repository.Appointments
             return _context.Appointments.AnyAsync(a => a.Id == id);
         }
     }
-}
+
