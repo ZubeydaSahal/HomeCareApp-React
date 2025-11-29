@@ -1,7 +1,7 @@
-// src/appointments/AppointmentTable.tsx
+
 import React from "react";
 import { Table, Button } from "react-bootstrap";
-import { Link } from "react-router-dom";
+import { Link, LinkProps } from "react-router-dom";
 import { Appointment } from "../../types/Appointment";
 
 interface AppointmentTableProps {
@@ -12,7 +12,7 @@ interface AppointmentTableProps {
 const formatDate = (dateStr: string) =>
   new Date(dateStr).toLocaleDateString("no-NO");
 
-const formatTime = (timeStr: string) => timeStr.substring(0, 5); // "HH:mm"
+const formatTime = (timeStr: string) => timeStr.substring(0, 5); 
 
 const AppointmentTable: React.FC<AppointmentTableProps> = ({
   appointments,
@@ -84,29 +84,28 @@ const AppointmentTable: React.FC<AppointmentTableProps> = ({
                   {a.personnelName ?? a.personnelId}
                 </td>
                 <td className="py-3 px-4 text-dark text-end">
-                  <Button
-                    as={Link}
-                    to={`/appointments/edit/${a.id}`}
-                    size="sm"
-                    variant="outline-secondary"
-                    className="me-2"
-                  >
-                    Edit
-                  </Button>
-                  {onDelete ? (
-                    <Button
-                      size="sm"
-                      variant="outline-danger"
-                      onClick={() => onDelete(a.id)}
-                    >
-                      Delete
-                    </Button>
-                  ) : (
-                    <Button size="sm" variant="outline-secondary" disabled>
-                      Delete
-                    </Button>
-                  )}
-                </td>
+  <Link
+    to={`/appointments/edit/${a.id}`}
+    className="btn btn-outline-secondary btn-sm me-2"
+  >
+    Edit
+  </Link>
+
+  {onDelete ? (
+    <Button
+      size="sm"
+      variant="outline-danger"
+      onClick={() => onDelete(a.id)}
+    >
+      Delete
+    </Button>
+  ) : (
+    <Button size="sm" variant="outline-secondary" disabled>
+      Delete
+    </Button>
+  )}
+</td>
+
               </tr>
             ))}
           </tbody>

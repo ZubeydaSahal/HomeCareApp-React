@@ -1,24 +1,23 @@
-// src/types/Appointment.ts
 export interface Appointment {
     id: number;
     availabilityId: number;
-    clientId: string;
+    clientId?: string;
     clientName?: string;
     personnelId?: string;
     personnelName?: string;
-    date: string;     
+    date: string;        
     startTime: string;  
-    endTime: string;     
+    endTime: string;    
     taskDescription: string;
-    status: string;
+    status: "Booked" | "Completed" | "Cancelled";
   }
   
   export interface AppointmentCreatePayload {
     availabilityId: number;
-    clientId?: string;     
+    clientId?: string;
     taskDescription: string;
-    startTime: string;       
-    endTime: string;         
+    startTime: string;  
+    endTime: string;   
     status: string;
   }
   

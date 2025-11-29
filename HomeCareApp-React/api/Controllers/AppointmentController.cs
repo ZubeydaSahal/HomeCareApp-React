@@ -1,3 +1,4 @@
+using System.Security.Claims;
 using HomeCareApp.DAL;
 using HomeCareApp.DTOs;
 using HomeCareApp.Models;
@@ -27,35 +28,79 @@ public class AppointmentApiController : ControllerBase
         _userManager = userManager;
     }
 
+    // Felles helper: henter "ekte" userId (GUID) fra siste NameIdentifier-claim
+    private string? GetCurrentUserId()
+    {
+        var nameIdClaims = User.Claims
+            .Where(c => c.Type == ClaimTypes.NameIdentifier)
+            .ToList();
+
+        if (!nameIdClaims.Any())
+            return null;
+
+        var userId = nameIdClaims.Last().Value;
+
+        Console.WriteLine(
+            $"[AppointmentApiController] NameId claims: {string.Join(" | ", nameIdClaims.Select(c => c.Value))}. Using userId={userId}");
+
+        return userId;
+    }
+
+    // ----------------------------------------------------
     // GET: api/appointments/list
+    // - Patient: kun egne avtaler
+    // - Personnel: alle egne (via Availability.PersonnelId)
+    // - Admin: alle
+    // ----------------------------------------------------
     [HttpGet("list")]
     public async Task<ActionResult<IEnumerable<AppointmentDto>>> List()
     {
         var all = await _appointmentRepository.GetAllAsync() ?? new List<Appointment>();
 
+        var userId      = GetCurrentUserId();
+        var isPatient   = User.IsInRole("Patient");
+        var isPersonnel = User.IsInRole("Personnel");
+        var isAdmin     = User.IsInRole("Admin");
+
+        if (!isAdmin && !string.IsNullOrEmpty(userId))
+        {
+            if (isPatient)
+            {
+                all = all.Where(a => a.ClientId == userId).ToList();
+            }
+            else if (isPersonnel)
+            {
+                all = all
+                    .Where(a => a.Availability != null &&
+                                a.Availability.PersonnelId == userId)
+                    .ToList();
+            }
+        }
+
         var dtos = all.Select(a => new AppointmentDto
         {
-            Id = a.Id,
+            Id             = a.Id,
             AvailabilityId = a.AvailabilityId,
-            ClientId = a.ClientId,
-            ClientName = a.Client?.FullName,
-            PersonnelId = a.Availability?.PersonnelId,
-            PersonnelName = a.Availability?.Personnel?.FullName,
-            //Date = a.Availability?.Date ?? default,  // DateOnly
+            ClientId       = a.ClientId,
+            ClientName     = a.Client?.FullName,
+            PersonnelId    = a.Availability?.PersonnelId,
+            PersonnelName  = a.Availability?.Personnel?.FullName,
+            Date           = a.Availability?.Date ?? default, // DateOnly
 
-    
-            // Hvis Appointment.StartTime er TimeSpan, bruk heller:
-            StartTime = TimeOnly.FromTimeSpan(a.StartTime),
-            EndTime   = TimeOnly.FromTimeSpan(a.EndTime),
+            // Entiteten har TimeSpan, DTO har TimeOnly
+            StartTime      = TimeOnly.FromTimeSpan(a.StartTime),
+            EndTime        = TimeOnly.FromTimeSpan(a.EndTime),
 
             TaskDescription = a.TaskDescription,
-            Status = a.Status
+            Status          = a.Status
         });
 
         return Ok(dtos);
     }
 
+    // ----------------------------------------------------
     // GET: api/appointments/5
+    // ----------------------------------------------------
     [HttpGet("{id:int}")]
     public async Task<ActionResult<AppointmentDto>> Get(int id)
     {
@@ -64,26 +109,28 @@ public class AppointmentApiController : ControllerBase
 
         var dto = new AppointmentDto
         {
-            Id = a.Id,
+            Id             = a.Id,
             AvailabilityId = a.AvailabilityId,
-            ClientId = a.ClientId,
-            ClientName = a.Client?.FullName,
-            PersonnelId = a.Availability?.PersonnelId,
-            PersonnelName = a.Availability?.Personnel?.FullName,
-            //Date = a.Availability?.Date ?? default,
-
-            // Samme kommentar som over ang. TimeOnly vs TimeSpan
-            StartTime = TimeOnly.FromTimeSpan(a.StartTime),
-            EndTime   = TimeOnly.FromTimeSpan(a.EndTime),
-
+            ClientId       = a.ClientId,
+            ClientName     = a.Client?.FullName,
+            PersonnelId    = a.Availability?.PersonnelId,
+            PersonnelName  = a.Availability?.Personnel?.FullName,
+            Date           = a.Availability?.Date ?? default,
+            StartTime      = TimeOnly.FromTimeSpan(a.StartTime),
+            EndTime        = TimeOnly.FromTimeSpan(a.EndTime),
             TaskDescription = a.TaskDescription,
-            Status = a.Status
+            Status          = a.Status
         };
 
         return Ok(dto);
     }
 
+    // ----------------------------------------------------
     // POST: api/appointments/create
+    // - Patient: kan bare booke for seg selv
+    // - Personnel/Admin: må sende ClientId i DTO
+    // DTO: StartTime/EndTime som "HH:mm" (string)
+    // ----------------------------------------------------
     [HttpPost("create")]
     public async Task<ActionResult> Create([FromBody] AppointmentCreateDto dto)
     {
@@ -93,13 +140,23 @@ public class AppointmentApiController : ControllerBase
         if (slot == null) return BadRequest("Selected availability does not exist.");
         if (slot.Appointment != null) return BadRequest("This time slot is already booked.");
 
-        // Hvem er klient?
+        // parse tider fra string → TimeSpan
+        if (!TimeSpan.TryParse(dto.StartTime, out var startTs) ||
+            !TimeSpan.TryParse(dto.EndTime, out var endTs))
+        {
+            return BadRequest("Invalid time format. Use HH:mm.");
+        }
+
+        if (startTs >= endTs)
+            return BadRequest("End time must be after start time.");
+
         string? clientId;
 
         if (User.IsInRole("Patient"))
         {
-            clientId = _userManager.GetUserId(User);
-            if (clientId == null) return Unauthorized("Could not find logged-in patient.");
+            clientId = GetCurrentUserId();
+            if (string.IsNullOrEmpty(clientId))
+                return Unauthorized("Could not find logged-in patient.");
         }
         else
         {
@@ -108,48 +165,42 @@ public class AppointmentApiController : ControllerBase
             clientId = dto.ClientId;
         }
 
-        if (dto.StartTime >= dto.EndTime)
-            return BadRequest("End time must be after start time.");
-
         var appointment = new Appointment
         {
-            AvailabilityId = dto.AvailabilityId,
-            ClientId = clientId!,
+            AvailabilityId  = dto.AvailabilityId,
+            ClientId        = clientId!,
             TaskDescription = dto.TaskDescription,
-            Status = dto.Status,
-
-    
-
-            // Hvis entiteten bruker TimeSpan, bruk:
-             StartTime = dto.StartTime.ToTimeSpan(),
-             EndTime   = dto.EndTime.ToTimeSpan(),
+            Status          = dto.Status,
+            StartTime       = startTs,
+            EndTime         = endTs
         };
 
         await _appointmentRepository.CreateAsync(appointment);
 
         var resultDto = new AppointmentDto
         {
-            Id = appointment.Id,
+            Id             = appointment.Id,
             AvailabilityId = appointment.AvailabilityId,
-            ClientId = appointment.ClientId,
+            ClientId       = appointment.ClientId,
             TaskDescription = appointment.TaskDescription,
-            Status = appointment.Status,
-            Date = slot.Date,
-            ClientName = appointment.Client?.FullName,
-            PersonnelId = slot.PersonnelId,
-            PersonnelName = slot.Personnel?.FullName,
-
-            // Samme type-kommentar som over:
-        
-            StartTime = TimeOnly.FromTimeSpan(appointment.StartTime),
-            EndTime   = TimeOnly.FromTimeSpan(appointment.EndTime),
-            // eller FromTimeSpan(...)
+            Status         = appointment.Status,
+            Date           = slot.Date,
+            ClientName     = appointment.Client?.FullName,
+            PersonnelId    = slot.PersonnelId,
+            PersonnelName  = slot.Personnel?.FullName,
+            StartTime      = TimeOnly.FromTimeSpan(appointment.StartTime),
+            EndTime        = TimeOnly.FromTimeSpan(appointment.EndTime),
         };
 
         return CreatedAtAction(nameof(Get), new { id = appointment.Id }, resultDto);
     }
 
+    // ----------------------------------------------------
     // PUT: api/appointments/update/5
+    // - Patient: kan bare endre egne, og vi låser Status til "Booked"
+    // - Personnel/Admin: kan endre alt
+    // DTO: StartTime/EndTime som "HH:mm"
+    // ----------------------------------------------------
     [HttpPut("update/{id:int}")]
     public async Task<ActionResult> Update(int id, [FromBody] AppointmentCreateDto dto)
     {
@@ -158,7 +209,13 @@ public class AppointmentApiController : ControllerBase
         var appt = await _appointmentRepository.GetByIdAsync(id);
         if (appt == null) return NotFound();
 
-        if (dto.StartTime >= dto.EndTime)
+        if (!TimeSpan.TryParse(dto.StartTime, out var startTs) ||
+            !TimeSpan.TryParse(dto.EndTime, out var endTs))
+        {
+            return BadRequest("Invalid time format. Use HH:mm.");
+        }
+
+        if (startTs >= endTs)
             return BadRequest("End time must be after start time.");
 
         var slot = await _availabilityRepository.GetByIdAsync(dto.AvailabilityId);
@@ -168,10 +225,12 @@ public class AppointmentApiController : ControllerBase
 
         if (User.IsInRole("Patient"))
         {
-            var userId = _userManager.GetUserId(User);
+            var userId = GetCurrentUserId();
+            if (string.IsNullOrEmpty(userId)) return Unauthorized();
             if (appt.ClientId != userId) return Forbid();
 
-            appt.Status = "Booked"; // pasient kan ikke endre til hva som helst
+            // pasient kan ikke sette Completed/Cancelled selv
+            appt.Status = "Booked";
         }
         else
         {
@@ -180,19 +239,20 @@ public class AppointmentApiController : ControllerBase
             appt.Status = dto.Status;
         }
 
-        appt.AvailabilityId = dto.AvailabilityId;
+        appt.AvailabilityId  = dto.AvailabilityId;
         appt.TaskDescription = dto.TaskDescription;
-
-    
-        // Hvis entiteten bruker TimeSpan:
-        appt.StartTime = dto.StartTime.ToTimeSpan();
-        appt.EndTime   = dto.EndTime.ToTimeSpan();
+        appt.StartTime       = startTs;
+        appt.EndTime         = endTs;
 
         await _appointmentRepository.UpdateAsync(appt);
         return NoContent();
     }
 
+    // ----------------------------------------------------
     // DELETE: api/appointments/delete/5
+    // - Patient: bare egne
+    // - Personnel/Admin: alt
+    // ----------------------------------------------------
     [HttpDelete("delete/{id:int}")]
     public async Task<ActionResult> Delete(int id)
     {
@@ -201,7 +261,8 @@ public class AppointmentApiController : ControllerBase
 
         if (User.IsInRole("Patient"))
         {
-            var userId = _userManager.GetUserId(User);
+            var userId = GetCurrentUserId();
+            if (string.IsNullOrEmpty(userId)) return Unauthorized();
             if (appt.ClientId != userId) return Forbid();
         }
 

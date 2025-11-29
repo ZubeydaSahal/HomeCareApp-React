@@ -1,26 +1,13 @@
-// Fil: DTOs/AppointmentCreateDto.cs
 using System.ComponentModel.DataAnnotations;
 
-namespace HomeCareApp.DTOs
+namespace HomeCareApp.DTOs;
+public class AppointmentCreateDto
 {
-    public class AppointmentCreateDto
-    {
-        [Required]
-        public int AvailabilityId { get; set; }   // Hvilket ledig time-slot
-
-        // Pasient: dette settes fra token (ignoreres i request)
-        // Personnel/Admin: kan sende inn ClientId eksplisitt
-        public string? ClientId { get; set; }
-
-        [Required]
-        public TimeOnly StartTime { get; set; }
-
-        [Required]
-        public TimeOnly EndTime { get; set; }
-
-        public string? TaskDescription { get; set; }
-
-        // F.eks. "Booked", "Cancelled", "Completed"
-        public string Status { get; set; } = "Booked";
-    }
+    public int AvailabilityId { get; set; }
+    public string? ClientId { get; set; }
+    public string TaskDescription { get; set; } = "";
+    public string StartTime { get; set; } = "";  
+    public string EndTime   { get; set; } = "";   
+    public string Status { get; set; } = "Booked";
 }
+

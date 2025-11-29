@@ -1,5 +1,4 @@
-// src/appointments/AppointmentForm.tsx
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Form, Button } from "react-bootstrap";
 import { AppointmentCreatePayload } from "../../types/Appointment";
 
@@ -24,7 +23,7 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({
   onSubmit,
 }) => {
   const [availabilityId, setAvailabilityId] = useState<number>(
-    initialValues?.availabilityId ?? (availabilityOptions[0]?.value as number) ?? 0
+    initialValues?.availabilityId ?? 0
   );
   const [clientId, setClientId] = useState<string>(initialValues?.clientId ?? "");
   const [taskDescription, setTaskDescription] = useState<string>(
@@ -41,9 +40,22 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({
   );
   const [submitting, setSubmitting] = useState(false);
 
+  // 🔥 Viktig: sett availabilityId når options er lastet inn
+  useEffect(() => {
+    if (!initialValues?.availabilityId && availabilityOptions.length > 0 && availabilityId === 0) {
+      setAvailabilityId(Number(availabilityOptions[0].value));
+    }
+  }, [availabilityOptions, initialValues, availabilityId]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setSubmitting(true);
+
+    if (!availabilityId) {
+      alert("You must choose an available time slot.");
+      setSubmitting(false);
+      return;
+    }
 
     const payload: AppointmentCreatePayload = {
       availabilityId,
@@ -69,7 +81,6 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({
       <div className="row">
         <div className="col-md-6">
           <Form onSubmit={handleSubmit}>
-            {/* Client (kun for personnel/admin) */}
             {isPersonnel && (
               <Form.Group className="mb-3">
                 <Form.Label>Client</Form.Label>
@@ -87,13 +98,13 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({
               </Form.Group>
             )}
 
-            {/* Availability */}
             <Form.Group className="mb-3">
               <Form.Label>Available Day/Slot</Form.Label>
               <Form.Select
-                value={availabilityId}
+                value={availabilityId || ""}
                 onChange={(e) => setAvailabilityId(Number(e.target.value))}
               >
+                <option value="">-- Select slot --</option>
                 {availabilityOptions.map((opt) => (
                   <option key={opt.value} value={opt.value}>
                     {opt.label}
@@ -102,7 +113,6 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({
               </Form.Select>
             </Form.Group>
 
-            {/* TaskDescription */}
             <Form.Group className="mb-3">
               <Form.Label>Task(s)</Form.Label>
               <Form.Control
@@ -113,7 +123,6 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({
               />
             </Form.Group>
 
-            {/* StartTime */}
             <Form.Group className="mb-3">
               <Form.Label>Start</Form.Label>
               <Form.Control
@@ -123,7 +132,6 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({
               />
             </Form.Group>
 
-            {/* EndTime */}
             <Form.Group className="mb-3">
               <Form.Label>End</Form.Label>
               <Form.Control
@@ -133,7 +141,6 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({
               />
             </Form.Group>
 
-            {/* Status */}
             <Form.Group className="mb-3">
               <Form.Label>Status</Form.Label>
               <Form.Select

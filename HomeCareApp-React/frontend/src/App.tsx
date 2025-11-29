@@ -6,6 +6,9 @@ import AvailabilityCreate from "./Pages/AvailabilityCreate";
 import AvailbilityUpdate from "./Pages/AvailabilityUpdate";
 import "./App.css";
 import AvailabilityListPage from "./Pages/AvailabilityList";
+import AppointmentListPage  from './Pages/appointments/AppointmentList';
+import AppointmentCreatePage from './Pages/appointments/AppointmentCreatePage'
+import AppointmentUpdatePage from './Pages/appointments/AppointmentUpdate'
 import React from "react";
 import LoginPage from './auth/LoginPage'
 import RegisterPage from './auth/RegisterPage'
@@ -32,6 +35,12 @@ const App = () => {
             path="/availability/edit/:availabilityId"
             element={<AvailbilityUpdate />}
           />
+           <Route path="/appointments" element={<AppointmentListPage />} />
+          <Route path="/appointments/create" element={<AppointmentCreatePage />} /> 
+          <Route
+    path="/appointments/edit/:appointmentId"
+    element={<AppointmentUpdatePage />}
+  />
             </Route>
         </Routes>
       </Container>

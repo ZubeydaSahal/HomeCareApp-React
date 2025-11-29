@@ -2,8 +2,16 @@
 import { Appointment, AppointmentCreatePayload } from "../../types/Appointment";
 
 const API_URL = import.meta.env.VITE_API_URL;
-const headers = {
-  "Content-Type": "application/json",
+
+const getAuthHeaders = () => {
+  const token = localStorage.getItem("token");
+  const headers: HeadersInit = {
+    "Content-Type": "application/json",
+  };
+  if (token) {
+    headers["Authorization"] = `Bearer ${token}`;
+  }
+  return headers;
 };
 
 const handleResponse = async (response: Response) => {
@@ -19,7 +27,8 @@ const handleResponse = async (response: Response) => {
 // GET: list
 export const fetchAppointments = async (): Promise<Appointment[]> => {
   const response = await fetch(`${API_URL}/api/appointments/list`, {
-    credentials: "include",
+    method: "GET",
+    headers: getAuthHeaders(),
   });
   return handleResponse(response);
 };
@@ -27,7 +36,8 @@ export const fetchAppointments = async (): Promise<Appointment[]> => {
 // GET: one
 export const getAppointment = async (id: number): Promise<Appointment> => {
   const response = await fetch(`${API_URL}/api/appointments/${id}`, {
-    credentials: "include",
+    method: "GET",
+    headers: getAuthHeaders(),
   });
   return handleResponse(response);
 };
@@ -38,8 +48,7 @@ export const createAppointment = async (
 ): Promise<Appointment> => {
   const response = await fetch(`${API_URL}/api/appointments/create`, {
     method: "POST",
-    headers,
-    credentials: "include",
+    headers: getAuthHeaders(),
     body: JSON.stringify(payload),
   });
   return handleResponse(response);
@@ -52,8 +61,7 @@ export const updateAppointment = async (
 ): Promise<void> => {
   const response = await fetch(`${API_URL}/api/appointments/update/${id}`, {
     method: "PUT",
-    headers,
-    credentials: "include",
+    headers: getAuthHeaders(),
     body: JSON.stringify(payload),
   });
   await handleResponse(response);
@@ -63,7 +71,7 @@ export const updateAppointment = async (
 export const deleteAppointment = async (id: number): Promise<void> => {
   const response = await fetch(`${API_URL}/api/appointments/delete/${id}`, {
     method: "DELETE",
-    credentials: "include",
+    headers: getAuthHeaders(),
   });
   await handleResponse(response);
 };

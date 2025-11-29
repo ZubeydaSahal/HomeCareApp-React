@@ -30,10 +30,11 @@ const handleResponse = async (response: Response) => {
   
     const response = await fetch(url, {
       method: "GET",
-      headers: getAuthHeaders(),   // 👈 viktig nå
+      headers: getAuthHeaders(),   
     });
     return handleResponse(response);
   };
+  
   
   
 
