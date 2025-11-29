@@ -1,0 +1,26 @@
+{
+ 
+   // Format on save for web-filer
+   "editor.formatOnSave": true,
+
+   // TypeScript/TSX
+   "[typescript]": {
+     "editor.defaultFormatter": "esbenp.prettier-vscode"
+   },
+   "[typescriptreact]": {
+     "editor.defaultFormatter": "esbenp.prettier-vscode"
+   },
+    // JavaScript/JSX
+   "[javascript]": {
+     "editor.defaultFormatter": "esbenp.prettier-vscode"
+   },
+   "[javascriptreact]": {
+     "editor.defaultFormatter": "esbenp.prettier-vscode"
+   },
+
+  "[csharp]": {
+    "editor.defaultFormatter": "ms-dotnettools.csharp",
+    "editor.formatOnSave": true
+  }
+
+}

@@ -1,11 +1,7 @@
-// src/Pages/appointments/AppointmentUpdatePage.tsx
 import React, { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import AppointmentForm from "./AppointmentForm";
-import {
-  getAppointment,
-  updateAppointment,
-} from "./AppointmentService";
+import { getAppointment, updateAppointment } from "./AppointmentService";
 import { Appointment, AppointmentCreatePayload } from "../../types/Appointment";
 
 import * as AvailabilityService from "../AvailabilityService";
@@ -21,7 +17,8 @@ const AppointmentUpdatePage: React.FC = () => {
 
   const [availabilityOptions, setAvailabilityOptions] = useState<Option[]>([]);
   const [clientOptions] = useState<Option[]>([]); // kan fylles senere med ekte pasienter
-  const [initialValues, setInitialValues] = useState<AppointmentCreatePayload | null>(null);
+  const [initialValues, setInitialValues] =
+    useState<AppointmentCreatePayload | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -51,7 +48,7 @@ const AppointmentUpdatePage: React.FC = () => {
           .filter((a: any) => !a.appointmentId || a.appointmentId === appt.id)
           .map((a: any) => ({
             value: a.id,
-            label: `${a.personnelName ?? "Unknown"} - ${a.date.substring(0, 10)} ${a.startTime.substring(0,5)}-${a.endTime.substring(0,5)}`,
+            label: `${a.personnelName ?? "Unknown"} - ${a.date.substring(0, 10)} ${a.startTime.substring(0, 5)}-${a.endTime.substring(0, 5)}`,
           }));
 
         setAvailabilityOptions(options);

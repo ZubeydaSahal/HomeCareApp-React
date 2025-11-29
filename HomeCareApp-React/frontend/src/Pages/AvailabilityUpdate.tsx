@@ -12,7 +12,6 @@ const AvailabilityUpdate: React.FC = () => {
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
- 
   useEffect(() => {
     const loadAvailability = async () => {
       if (!availabilityId) {
@@ -22,7 +21,7 @@ const AvailabilityUpdate: React.FC = () => {
       }
 
       try {
-        const data = await fetchAvailabilities(availabilityId); 
+        const data = await fetchAvailabilities(availabilityId);
         setAvailability(data);
       } catch (err) {
         console.error("There was a problem with the fetch operation:", err);
@@ -37,7 +36,7 @@ const AvailabilityUpdate: React.FC = () => {
 
   const handleAvailabilityUpdated = async (updated: Availability) => {
     try {
-      await updateAvailability(updated.id, updated); 
+      await updateAvailability(updated.id, updated);
       console.log("Availability updated successfully");
       navigate("/availability");
     } catch (error) {

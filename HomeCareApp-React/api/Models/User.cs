@@ -3,9 +3,6 @@ using Microsoft.AspNetCore.Identity;
 
 namespace HomeCareApp.Models
 {
-    /// <summary>
-    /// Represents an application user, extending ASP.NET Identity's built-in IdentityUser.
-    /// </summary>
 
     public class User : IdentityUser
     {
@@ -15,6 +12,6 @@ namespace HomeCareApp.Models
 
         [Required(ErrorMessage = "Role is required.")]
         [RegularExpression(@"^(Personnel|Patient)$", ErrorMessage = "Role must be either 'Personnel' or 'Patient'.")]
-        public string Role { get; set; } = string.Empty; // "Personnel" or “Patient”
+        public string Role { get; set; } = string.Empty; // "Personnel" or “Patient or Admin ”
     }
 }

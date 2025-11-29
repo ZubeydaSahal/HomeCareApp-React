@@ -14,7 +14,7 @@ const AppointmentList: React.FC = () => {
   const [selectedAppt, setSelectedAppt] = useState<Appointment | null>(null);
   const [deleting, setDeleting] = useState(false);
 
-  // Hent alle avtaler 
+  // Hent alle avtaler
   useEffect(() => {
     const load = async () => {
       try {
@@ -108,16 +108,18 @@ const AppointmentList: React.FC = () => {
                   {selectedAppt.endTime.substring(0, 5)}
                 </li>
               </ul>
-              <p className="text-danger mb-0">
-                This action cannot be undone.
-              </p>
+              <p className="text-danger mb-0">This action cannot be undone.</p>
             </>
           ) : (
             <p>No appointment selected.</p>
           )}
         </Modal.Body>
         <Modal.Footer>
-          <Button variant="secondary" onClick={handleConfirmClose} disabled={deleting}>
+          <Button
+            variant="secondary"
+            onClick={handleConfirmClose}
+            disabled={deleting}
+          >
             Cancel
           </Button>
           <Button

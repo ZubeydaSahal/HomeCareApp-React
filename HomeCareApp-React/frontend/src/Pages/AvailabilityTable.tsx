@@ -60,9 +60,7 @@ const AvailabilityTable: React.FC<Props> = ({
 
               return (
                 <tr key={a.id}>
-                  <td className="py-3 px-4 text-dark">
-                    {formatDate(a.date)}
-                  </td>
+                  <td className="py-3 px-4 text-dark">{formatDate(a.date)}</td>
                   <td className="py-3 px-4 text-dark">
                     {formatTime(a.startTime)}
                   </td>
@@ -91,19 +89,13 @@ const AvailabilityTable: React.FC<Props> = ({
                         <Button
                           variant="outline-danger"
                           size="sm"
-                          onClick={() =>
-                            a.id && onAvailabilityDeleted?.(a.id)
-                          }
+                          onClick={() => a.id && onAvailabilityDeleted?.(a.id)}
                         >
                           Delete
                         </Button>
                       </>
                     ) : (
-                      <Button
-                        variant="outline-secondary"
-                        size="sm"
-                        disabled
-                      >
+                      <Button variant="outline-secondary" size="sm" disabled>
                         Booked
                       </Button>
                     )}
@@ -114,10 +106,7 @@ const AvailabilityTable: React.FC<Props> = ({
 
             {sorted.length === 0 && (
               <tr>
-                <td
-                  colSpan={5}
-                  className="py-4 px-4 text-center text-muted"
-                >
+                <td colSpan={5} className="py-4 px-4 text-center text-muted">
                   No availability slots found.
                 </td>
               </tr>

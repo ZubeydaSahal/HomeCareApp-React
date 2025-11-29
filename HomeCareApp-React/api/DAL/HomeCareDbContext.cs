@@ -6,8 +6,8 @@ namespace HomeCareApp.DAL
 {
     public class HomeCareDbContext : IdentityDbContext<User>
     {
-        public HomeCareDbContext(DbContextOptions<HomeCareDbContext> options) : base(options) 
-        { 
+        public HomeCareDbContext(DbContextOptions<HomeCareDbContext> options) : base(options)
+        {
             Database.EnsureCreated();
 
         }

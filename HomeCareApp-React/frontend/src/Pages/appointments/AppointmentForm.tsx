@@ -17,7 +17,6 @@ interface AppointmentFormProps {
 
 const AppointmentForm: React.FC<AppointmentFormProps> = ({
   isPersonnel,
-  clientOptions,
   availabilityOptions,
   initialValues,
   onSubmit,
@@ -25,24 +24,27 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({
   const [availabilityId, setAvailabilityId] = useState<number>(
     initialValues?.availabilityId ?? 0
   );
-  const [clientId, setClientId] = useState<string>(initialValues?.clientId ?? "");
+  const [clientId, setClientId] = useState<string>(
+    initialValues?.clientId ?? ""
+  );
   const [taskDescription, setTaskDescription] = useState<string>(
     initialValues?.taskDescription ?? ""
   );
   const [startTime, setStartTime] = useState<string>(
     initialValues?.startTime ?? ""
   );
-  const [endTime, setEndTime] = useState<string>(
-    initialValues?.endTime ?? ""
-  );
+  const [endTime, setEndTime] = useState<string>(initialValues?.endTime ?? "");
   const [status, setStatus] = useState<string>(
     initialValues?.status ?? "Booked"
   );
   const [submitting, setSubmitting] = useState(false);
 
-  
   useEffect(() => {
-    if (!initialValues?.availabilityId && availabilityOptions.length > 0 && availabilityId === 0) {
+    if (
+      !initialValues?.availabilityId &&
+      availabilityOptions.length > 0 &&
+      availabilityId === 0
+    ) {
       setAvailabilityId(Number(availabilityOptions[0].value));
     }
   }, [availabilityOptions, initialValues, availabilityId]);
@@ -61,7 +63,7 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({
       availabilityId,
       clientId: clientId || undefined,
       taskDescription,
-      startTime, 
+      startTime,
       endTime,
       status,
     };

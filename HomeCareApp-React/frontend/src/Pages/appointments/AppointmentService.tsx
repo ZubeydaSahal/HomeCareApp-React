@@ -1,4 +1,3 @@
-// src/appointments/AppointmentService.ts
 import { Appointment, AppointmentCreatePayload } from "../../types/Appointment";
 
 const API_URL = import.meta.env.VITE_API_URL;
@@ -20,7 +19,9 @@ const handleResponse = async (response: Response) => {
     return response.json();
   } else {
     const errorText = await response.text();
-    throw new Error(errorText || `Network response was not OK (${response.status})`);
+    throw new Error(
+      errorText || `Network response was not OK (${response.status})`
+    );
   }
 };
 

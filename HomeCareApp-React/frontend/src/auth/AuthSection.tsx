@@ -1,16 +1,12 @@
-import React from 'react';
-import { Link } from 'react-router-dom';
-import { useAuth } from './AuthContext';
-import { Nav, Dropdown } from 'react-bootstrap';
+import React from "react";
+import { Link } from "react-router-dom";
+import { useAuth } from "./AuthContext";
+import { Nav, Dropdown } from "react-bootstrap";
 
 const AuthSection: React.FC = () => {
   const { user, logout } = useAuth();
 
-  const displayName =
-    user?.name ??
-    user?.email ??
-    user?.sub ??
-    "User";
+  const displayName = user?.name ?? user?.email ?? user?.sub ?? "User";
 
   return (
     <Nav>
@@ -25,8 +21,12 @@ const AuthSection: React.FC = () => {
         </Dropdown>
       ) : (
         <>
-          <Nav.Link as={Link} to="/login">Login</Nav.Link>
-          <Nav.Link as={Link} to="/register">Register</Nav.Link>  
+          <Nav.Link as={Link} to="/login">
+            Login
+          </Nav.Link>
+          <Nav.Link as={Link} to="/register">
+            Register
+          </Nav.Link>
         </>
       )}
     </Nav>

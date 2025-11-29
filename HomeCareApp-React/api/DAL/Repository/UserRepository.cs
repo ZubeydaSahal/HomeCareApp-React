@@ -15,7 +15,7 @@ public class UserRepository : IUserRepository
     }
 
     public Task<Models.User?> FindByEmailAsync(string email)
-        => _userManager.FindByEmailAsync(email); 
+        => _userManager.FindByEmailAsync(email);
 
     public Task<SignInResult> PasswordSignInAsync(Models.User user, string password)
         => _signInManager.PasswordSignInAsync(user, password, isPersistent: false, lockoutOnFailure: false);

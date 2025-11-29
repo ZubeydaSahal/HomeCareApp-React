@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { Spinner, Alert } from "react-bootstrap";
 import { useAuth } from "../auth/AuthContext";
-import { fetchAppointments } from "../Pages/appointments/AppointmentService"; 
+import { fetchAppointments } from "../Pages/appointments/AppointmentService";
 import { Appointment } from "../types/Appointment";
 
 const PatientDashboard: React.FC = () => {
@@ -17,45 +17,43 @@ const PatientDashboard: React.FC = () => {
       try {
         setError(null);
         setLoading(true);
-  
+
         const all = await fetchAppointments();
         console.log("All appointments from API:", all);
-  
+
         const today = new Date();
         today.setHours(0, 0, 0, 0);
-  
+
         // Hent brukerens ID fra JWT (nameidentifier-claimen)
-        const userId =
-          (user as any)?.[
-            "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier"
-          ];
-  
+        const userId = (user as any)?.[
+          "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier"
+        ];
+
         console.log("Current userId (from token):", userId);
-  
+
         const upcoming = all
           .filter((a) => {
             // Dato-filter
             const d = new Date(a.date);
             d.setHours(0, 0, 0, 0);
             const isFutureOrToday = d >= today;
-  
-         
+
             const isForThisPatient = !userId || a.clientId === userId;
-  
+
             return isFutureOrToday && isForThisPatient;
           })
           .sort((a, b) => {
             const da = new Date(a.date).getTime();
             const db = new Date(b.date).getTime();
             if (da !== db) return da - db;
-  
+
             const ta = (a.startTime ?? "").slice(0, 5);
             const tb = (b.startTime ?? "").slice(0, 5);
             return ta.localeCompare(tb);
           });
-  
+
         console.log("Filtered upcoming appointments:", upcoming);
-  
+
         setAppointments(upcoming);
       } catch (err) {
         console.error(err);
@@ -64,10 +62,9 @@ const PatientDashboard: React.FC = () => {
         setLoading(false);
       }
     };
-  
+
     load();
   }, [user]);
-  
 
   const today = new Date();
   today.setHours(0, 0, 0, 0);
@@ -82,9 +79,7 @@ const PatientDashboard: React.FC = () => {
     <div>
       {/* Welcome / topptekst */}
       <div className="mb-5">
-      <h2 className="fw-bold mb-3">
-        Welcome back, {displayName}!
-        </h2>
+        <h2 className="fw-bold mb-3">Welcome back, {displayName}!</h2>
         {todayCount > 0 ? (
           <p className="text-muted mb-0 fs-5 lh-base">
             You have {todayCount} appointment{todayCount > 1 ? "s" : ""} today.
@@ -106,7 +101,9 @@ const PatientDashboard: React.FC = () => {
                 <div className="card border-1 border-dark bg-light h-100 text-center py-4">
                   <div className="card-body">
                     <i className="bi bi-calendar-check display-1 text-secondary mb-3"></i>
-                    <h5 className="card-title text-dark mb-0">Book appointment</h5>
+                    <h5 className="card-title text-dark mb-0">
+                      Book appointment
+                    </h5>
                   </div>
                 </div>
               </Link>
@@ -117,7 +114,9 @@ const PatientDashboard: React.FC = () => {
                 <div className="card border-1 border-dark bg-light h-100 text-center py-4">
                   <div className="card-body">
                     <i className="bi bi-envelope display-1 text-secondary mb-3"></i>
-                    <h5 className="card-title text-dark mb-0">Contact caregiver</h5>
+                    <h5 className="card-title text-dark mb-0">
+                      Contact caregiver
+                    </h5>
                   </div>
                 </div>
               </a>
@@ -128,7 +127,9 @@ const PatientDashboard: React.FC = () => {
           <div className="card border-1 border-dark bg-light">
             <div className="card-body p-4">
               <div className="d-flex justify-content-between align-items-center mb-4">
-                <h5 className="fw-bold mb-0 text-dark">Upcoming Appointments</h5>
+                <h5 className="fw-bold mb-0 text-dark">
+                  Upcoming Appointments
+                </h5>
                 <Link className="btn btn-secondary btn-sm" to="/appointments">
                   view all
                 </Link>
@@ -197,7 +198,10 @@ const PatientDashboard: React.FC = () => {
 
         {/* Høyre kolonne – CareTeam (fortsatt statisk/dummy) */}
         <div className="col-lg-4">
-          <div className="card border-1 border-dark bg-light h-100" id="careTeam">
+          <div
+            className="card border-1 border-dark bg-light h-100"
+            id="careTeam"
+          >
             <div className="card-body p-4">
               <h5 className="fw-bold mb-4 text-dark">My Care Team</h5>
               <div className="text-center py-4">

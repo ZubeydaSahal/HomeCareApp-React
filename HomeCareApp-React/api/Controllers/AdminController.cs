@@ -3,68 +3,69 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using HomeCareApp.DTOs;
-namespace HomeCareApp.Controllers
+namespace HomeCareApp.Controllers;
+
+
+[ApiController]
+[Route("api/admin")]
+[Authorize(Roles = "Admin")]
+public class AdminController : ControllerBase
 {
-    [ApiController]
-    [Route("api/admin")]
-    [Authorize(Roles = "Admin")]
-    public class AdminController : ControllerBase
+    private readonly UserManager<User> _userManager;
+    private readonly ILogger<AdminController> _logger;
+
+    public AdminController(
+        UserManager<User> userManager,
+        ILogger<AdminController> logger)
     {
-        private readonly UserManager<User> _userManager;
-        private readonly ILogger<AdminController> _logger;
-
-        public AdminController(
-            UserManager<User> userManager,
-            ILogger<AdminController> logger)
-        {
-            _userManager = userManager;
-            _logger = logger;
-        }
-
-        // -------------------------------------------------
-        // GET: api/admin/patients
-        // -> Admin ser alle pasienter
-        // -------------------------------------------------
-        [HttpGet("patients")]
-        public async Task<ActionResult<IEnumerable<AdminDto>>> GetPatients()
-        {
-            _logger.LogInformation("[AdminController] GetPatients called by {User}", User.Identity?.Name);
-
-            var patients = await _userManager.GetUsersInRoleAsync("Patient");
-
-            var dto = patients.Select(p => new AdminDto
-            {
-                Id       = p.Id,
-                FullName = p.FullName ?? "(No name)",
-                Email    = p.Email,
-                Role     = "Patient"
-            });
-
-            return Ok(dto);
-        }
-
-        // -------------------------------------------------
-        // GET: api/admin/personnel
-        // -> Admin ser alle pleiere
-        // -------------------------------------------------
-        [HttpGet("personnel")]
-        public async Task<ActionResult<IEnumerable<AdminDto>>> GetPersonnel()
-        {
-            _logger.LogInformation("[AdminController] GetPersonnel called by {User}", User.Identity?.Name);
-
-            var personnel = await _userManager.GetUsersInRoleAsync("Personnel");
-
-            var dto = personnel.Select(p => new AdminDto
-            {
-                Id       = p.Id,
-                FullName = p.FullName ?? "(No name)",
-                Email    = p.Email,
-                Role     = "Personnel"
-            });
-
-            return Ok(dto);
-        }
-
-      
+        _userManager = userManager;
+        _logger = logger;
     }
+
+    // -------------------------------------------------
+    // GET: api/admin/patients
+    // -> Admin ser alle pasienter
+    // -------------------------------------------------
+    [HttpGet("patients")]
+    public async Task<ActionResult<IEnumerable<AdminDto>>> GetPatients()
+    {
+        _logger.LogInformation("[AdminController] GetPatients called by {User}", User.Identity?.Name);
+
+        var patients = await _userManager.GetUsersInRoleAsync("Patient");
+
+        var dto = patients.Select(p => new AdminDto
+        {
+            Id = p.Id,
+            FullName = p.FullName ?? "(No name)",
+            Email = p.Email,
+            Role = "Patient"
+        });
+
+        return Ok(dto);
+    }
+
+    // -------------------------------------------------
+    // GET: api/admin/personnel
+    // -> Admin ser alle pleiere
+    // -------------------------------------------------
+    [HttpGet("personnel")]
+    public async Task<ActionResult<IEnumerable<AdminDto>>> GetPersonnel()
+    {
+        _logger.LogInformation("[AdminController] GetPersonnel called by {User}", User.Identity?.Name);
+
+        var personnel = await _userManager.GetUsersInRoleAsync("Personnel");
+
+        var dto = personnel.Select(p => new AdminDto
+        {
+            Id = p.Id,
+            FullName = p.FullName ?? "(No name)",
+            Email = p.Email,
+            Role = "Personnel"
+        });
+
+        return Ok(dto);
+    }
+
+
 }
+

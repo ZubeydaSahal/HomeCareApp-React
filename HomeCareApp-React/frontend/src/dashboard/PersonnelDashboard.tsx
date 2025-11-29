@@ -25,10 +25,9 @@ const PersonnelDashboard: React.FC = () => {
         today.setHours(0, 0, 0, 0);
 
         // Hent innlogget bruker-ID fra nameidentifier-claimen i JWT
-        const userId =
-          (user as any)?.[
-            "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier"
-          ];
+        const userId = (user as any)?.[
+          "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier"
+        ];
 
         console.log("Current personnelId (from token):", userId);
 
@@ -197,7 +196,9 @@ const PersonnelDashboard: React.FC = () => {
               ) : upcomingAppointments.length === 0 ? (
                 <div className="text-center py-4">
                   <i className="bi bi-calendar-x display-4 text-muted mb-3 d-block"></i>
-                  <p className="text-dark mb-0">No upcoming appointments scheduled.</p>
+                  <p className="text-dark mb-0">
+                    No upcoming appointments scheduled.
+                  </p>
                 </div>
               ) : (
                 <div className="table-responsive rounded overflow-hidden border border-dark">
@@ -247,7 +248,6 @@ const PersonnelDashboard: React.FC = () => {
           </div>
         </div>
 
-      
         <div className="col-md-5">
           <div className="card border bg-light h-100">
             <div className="card-body p-4">

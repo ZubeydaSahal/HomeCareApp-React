@@ -28,7 +28,6 @@ public class AppointmentController : ControllerBase
         _userManager = userManager;
     }
 
-    // Felles helper: henter "ekte" userId (GUID) fra siste NameIdentifier-claim
     private string? GetCurrentUserId()
     {
         var nameIdClaims = User.Claims
@@ -57,10 +56,10 @@ public class AppointmentController : ControllerBase
     {
         var all = await _appointmentRepository.GetAllAsync() ?? new List<Appointment>();
 
-        var userId      = GetCurrentUserId();
-        var isPatient   = User.IsInRole("Patient");
+        var userId = GetCurrentUserId();
+        var isPatient = User.IsInRole("Patient");
         var isPersonnel = User.IsInRole("Personnel");
-        var isAdmin     = User.IsInRole("Admin");
+        var isAdmin = User.IsInRole("Admin");
 
         if (!isAdmin && !string.IsNullOrEmpty(userId))
         {
@@ -79,20 +78,20 @@ public class AppointmentController : ControllerBase
 
         var dtos = all.Select(a => new AppointmentDto
         {
-            Id             = a.Id,
+            Id = a.Id,
             AvailabilityId = a.AvailabilityId,
-            ClientId       = a.ClientId,
-            ClientName     = a.Client?.FullName,
-            PersonnelId    = a.Availability?.PersonnelId,
-            PersonnelName  = a.Availability?.Personnel?.FullName,
-            Date           = a.Availability?.Date ?? default, 
+            ClientId = a.ClientId,
+            ClientName = a.Client?.FullName,
+            PersonnelId = a.Availability?.PersonnelId,
+            PersonnelName = a.Availability?.Personnel?.FullName,
+            Date = a.Availability?.Date ?? default,
 
             // Entiteten har TimeSpan, DTO har TimeOnly
-            StartTime      = TimeOnly.FromTimeSpan(a.StartTime),
-            EndTime        = TimeOnly.FromTimeSpan(a.EndTime),
+            StartTime = TimeOnly.FromTimeSpan(a.StartTime),
+            EndTime = TimeOnly.FromTimeSpan(a.EndTime),
 
             TaskDescription = a.TaskDescription,
-            Status          = a.Status
+            Status = a.Status
         });
 
         return Ok(dtos);
@@ -102,58 +101,57 @@ public class AppointmentController : ControllerBase
     // GET: api/appointments/5
     // ----------------------------------------------------
     [HttpGet("{id:int}")]
-public async Task<ActionResult<AppointmentDto>> Get(int id)
-{
-    var appt = await _appointmentRepository.GetByIdAsync(id);
-    if (appt == null) return NotFound();
-
-    var userId      = GetCurrentUserId();
-    var isPatient   = User.IsInRole("Patient");
-    var isPersonnel = User.IsInRole("Personnel");
-    var isAdmin     = User.IsInRole("Admin");
-
-    // Admin kan alltid
-    if (!isAdmin && !string.IsNullOrEmpty(userId))
+    public async Task<ActionResult<AppointmentDto>> Get(int id)
     {
-        if (isPatient && appt.ClientId != userId)
-        {
-            return Forbid();
-        }
+        var appt = await _appointmentRepository.GetByIdAsync(id);
+        if (appt == null) return NotFound();
 
-        if (isPersonnel)
+        var userId = GetCurrentUserId();
+        var isPatient = User.IsInRole("Patient");
+        var isPersonnel = User.IsInRole("Personnel");
+        var isAdmin = User.IsInRole("Admin");
+
+        // Admin kan alltid
+        if (!isAdmin && !string.IsNullOrEmpty(userId))
         {
-            var personnelId = appt.Availability?.PersonnelId;
-            if (personnelId != userId)
+            if (isPatient && appt.ClientId != userId)
             {
                 return Forbid();
             }
+
+            if (isPersonnel)
+            {
+                var personnelId = appt.Availability?.PersonnelId;
+                if (personnelId != userId)
+                {
+                    return Forbid();
+                }
+            }
         }
+
+        var dto = new AppointmentDto
+        {
+            Id = appt.Id,
+            AvailabilityId = appt.AvailabilityId,
+            ClientId = appt.ClientId,
+            ClientName = appt.Client?.FullName,
+            PersonnelId = appt.Availability?.PersonnelId,
+            PersonnelName = appt.Availability?.Personnel?.FullName,
+            Date = appt.Availability?.Date ?? default,
+            StartTime = TimeOnly.FromTimeSpan(appt.StartTime),
+            EndTime = TimeOnly.FromTimeSpan(appt.EndTime),
+            TaskDescription = appt.TaskDescription,
+            Status = appt.Status
+        };
+
+        return Ok(dto);
     }
-
-    var dto = new AppointmentDto
-    {
-        Id             = appt.Id,
-        AvailabilityId = appt.AvailabilityId,
-        ClientId       = appt.ClientId,
-        ClientName     = appt.Client?.FullName,
-        PersonnelId    = appt.Availability?.PersonnelId,
-        PersonnelName  = appt.Availability?.Personnel?.FullName,
-        Date           = appt.Availability?.Date ?? default,
-        StartTime      = TimeOnly.FromTimeSpan(appt.StartTime),
-        EndTime        = TimeOnly.FromTimeSpan(appt.EndTime),
-        TaskDescription = appt.TaskDescription,
-        Status          = appt.Status
-    };
-
-    return Ok(dto);
-}
 
 
     // ----------------------------------------------------
     // POST: api/appointments/create
     // - Patient: kan bare booke for seg selv
     // - Personnel/Admin: må sende ClientId i DTO
-    // DTO: StartTime/EndTime som "HH:mm" (string)
     // ----------------------------------------------------
     [HttpPost("create")]
     public async Task<ActionResult> Create([FromBody] AppointmentCreateDto dto)
@@ -191,29 +189,29 @@ public async Task<ActionResult<AppointmentDto>> Get(int id)
 
         var appointment = new Appointment
         {
-            AvailabilityId  = dto.AvailabilityId,
-            ClientId        = clientId!,
+            AvailabilityId = dto.AvailabilityId,
+            ClientId = clientId!,
             TaskDescription = dto.TaskDescription,
-            Status          = dto.Status,
-            StartTime       = startTs,
-            EndTime         = endTs
+            Status = dto.Status,
+            StartTime = startTs,
+            EndTime = endTs
         };
 
         await _appointmentRepository.CreateAsync(appointment);
 
         var resultDto = new AppointmentDto
         {
-            Id             = appointment.Id,
+            Id = appointment.Id,
             AvailabilityId = appointment.AvailabilityId,
-            ClientId       = appointment.ClientId,
+            ClientId = appointment.ClientId,
             TaskDescription = appointment.TaskDescription,
-            Status         = appointment.Status,
-            Date           = slot.Date,
-            ClientName     = appointment.Client?.FullName,
-            PersonnelId    = slot.PersonnelId,
-            PersonnelName  = slot.Personnel?.FullName,
-            StartTime      = TimeOnly.FromTimeSpan(appointment.StartTime),
-            EndTime        = TimeOnly.FromTimeSpan(appointment.EndTime),
+            Status = appointment.Status,
+            Date = slot.Date,
+            ClientName = appointment.Client?.FullName,
+            PersonnelId = slot.PersonnelId,
+            PersonnelName = slot.Personnel?.FullName,
+            StartTime = TimeOnly.FromTimeSpan(appointment.StartTime),
+            EndTime = TimeOnly.FromTimeSpan(appointment.EndTime),
         };
 
         return CreatedAtAction(nameof(Get), new { id = appointment.Id }, resultDto);
@@ -262,10 +260,10 @@ public async Task<ActionResult<AppointmentDto>> Get(int id)
             appt.Status = dto.Status;
         }
 
-        appt.AvailabilityId  = dto.AvailabilityId;
+        appt.AvailabilityId = dto.AvailabilityId;
         appt.TaskDescription = dto.TaskDescription;
-        appt.StartTime       = startTs;
-        appt.EndTime         = endTs;
+        appt.StartTime = startTs;
+        appt.EndTime = endTs;
 
         await _appointmentRepository.UpdateAsync(appt);
         return NoContent();

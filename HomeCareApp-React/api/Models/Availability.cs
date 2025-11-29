@@ -12,8 +12,8 @@ namespace HomeCareApp.Models
         public string PersonnelId { get; set; } = string.Empty;
 
         [ForeignKey("PersonnelId")]
-        public User? Personnel { get; set; }  
-        
+        public User? Personnel { get; set; }
+
         [Required, DataType(DataType.Date)]
         [DisplayFormat(DataFormatString = "{0:yyyy-MM-dd}", ApplyFormatInEditMode = true)]
         public DateTime Date { get; set; } = DateTime.Today;

@@ -1,4 +1,3 @@
-
 import React from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "../auth/AuthContext";
@@ -38,7 +37,7 @@ const AdminDashboard: React.FC = () => {
               </div>
             </div>
           </Link>
-          </div>
+        </div>
       </div>
     </div>
   );

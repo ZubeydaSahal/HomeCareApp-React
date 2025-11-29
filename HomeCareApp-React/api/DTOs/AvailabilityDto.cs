@@ -8,7 +8,7 @@ namespace HomeCareApp.DTOs
 
         public string PersonnelId { get; set; } = string.Empty;
 
-    
+
         public string? PersonnelName { get; set; }
 
         public DateTime Date { get; set; }
@@ -21,7 +21,5 @@ namespace HomeCareApp.DTOs
 
         public int? AppointmentId { get; set; }
 
-    
-        public bool IsBooked => AppointmentId.HasValue;
     }
 }

@@ -1,4 +1,3 @@
-// src/Pages/appointments/AppointmentTable.tsx
 import React from "react";
 import { Table, Button } from "react-bootstrap";
 import { Link } from "react-router-dom";
@@ -57,15 +56,11 @@ const AppointmentTable: React.FC<AppointmentTableProps> = ({
           <tbody>
             {sorted.map((a) => (
               <tr key={a.id}>
-                <td className="py-3 px-4 text-dark">
-                  {formatDate(a.date)}
-                </td>
+                <td className="py-3 px-4 text-dark">{formatDate(a.date)}</td>
                 <td className="py-3 px-4 text-dark">
                   {formatTime(a.startTime)}
                 </td>
-                <td className="py-3 px-4 text-dark">
-                  {formatTime(a.endTime)}
-                </td>
+                <td className="py-3 px-4 text-dark">{formatTime(a.endTime)}</td>
                 <td className="py-3 px-4 text-dark">
                   {a.status === "Booked" && (
                     <span className="badge bg-secondary">Booked</span>

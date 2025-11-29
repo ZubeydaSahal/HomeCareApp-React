@@ -1,4 +1,3 @@
-// src/App.tsx
 import React from "react";
 import {
   BrowserRouter as Router,
@@ -52,7 +51,10 @@ const App: React.FC = () => {
 
               {/* Availability – kun synlig i meny for Personnel/Admin */}
               <Route path="/availability" element={<AvailabilityListPage />} />
-              <Route path="/availability/create" element={<AvailabilityCreate />} />
+              <Route
+                path="/availability/create"
+                element={<AvailabilityCreate />}
+              />
               <Route
                 path="/availability/edit/:availabilityId"
                 element={<AvailbilityUpdate />}

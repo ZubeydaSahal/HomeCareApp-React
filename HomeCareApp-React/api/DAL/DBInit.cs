@@ -7,7 +7,7 @@ namespace HomeCareApp.DAL
 {
     public static class DBInit
     {
-   
+
         public static void Seed(IApplicationBuilder app)
         {
             using var serviceScope = app.ApplicationServices.CreateScope();
@@ -41,14 +41,14 @@ namespace HomeCareApp.DAL
             var nurseEmail = "nurse@homecare.local";
             var patientEmail = "patient@homecare.local";
             var adminEmail = "admin@homecare.local";
-            
+
             var admin = new User
             {
                 UserName = adminEmail,
                 Email = adminEmail,
                 EmailConfirmed = true,
                 FullName = "Admin Alice",
-                Role = "Admin" 
+                Role = "Admin"
             };
 
             var adminResult = await um.CreateAsync(admin, "Pass123!");

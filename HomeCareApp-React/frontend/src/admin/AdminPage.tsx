@@ -1,4 +1,3 @@
-// src/admin/AdminPage.tsx
 import React, { useEffect, useState } from "react";
 import { fetchPatients } from "./AdminService";
 import { Spinner, Alert, Table } from "react-bootstrap";
