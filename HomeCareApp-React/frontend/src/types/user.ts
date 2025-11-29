@@ -1,9 +1,7 @@
 export interface User {
-    sub: string;        // brukernavn
-    email?: string;
-    jti?: string;
-    exp: number;        // utløpstid (viktig!)
-    iat: number;        // issued at
-    role?: string | string[];  // hvis du vil lese roller senere
-  }
-  
+  sub: string;
+  email?: string;
+  role?: string;
+  exp: number;
+  [key: string]: any; // beholder alle andre claims
+}

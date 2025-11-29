@@ -15,12 +15,13 @@ const LoginPage: React.FC = () => {
         setError(null);
         try {
             await login({ username, password });
-            navigate('/availability'); // Redirect to a protected page or dashboard on success
+            navigate('/'); // blir redrikta til hjem-sida etter login
         } catch (err) {
             setError('Invalid username or password.');
             console.error(err);
         }
     };
+    
 
     return (
         <Container className="mt-5">
