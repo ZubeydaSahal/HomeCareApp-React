@@ -70,7 +70,7 @@ public class AvailabilityController : ControllerBase
     // --------------------------------------------------------------------
     // GET: api/availability/5
     // --------------------------------------------------------------------
-    [HttpGet("{id:int}")]
+    [HttpGet("{id}")]
     public async Task<ActionResult<AvailabilityDto>> Get(int id)
     {
         var a = await _availabilityRepository.GetByIdAsync(id);
@@ -143,7 +143,7 @@ public class AvailabilityController : ControllerBase
     // PUT: api/availability/update/5
     // Kun eier selv eller Admin får lov å oppdatere
     // --------------------------------------------------------------------
-    [HttpPut("update/{id:int}")]
+    [HttpPut("update/{id}")]
     [Authorize(Roles = "Personnel,Admin")]
     public async Task<ActionResult> Update(int id, [FromBody] AvailabilityCreateDto dto)
     {
@@ -180,7 +180,7 @@ public class AvailabilityController : ControllerBase
     // DELETE: api/availability/delete/5
     // Kun eier selv eller Admin får lov å slette
     // --------------------------------------------------------------------
-    [HttpDelete("delete/{id:int}")]
+    [HttpDelete("delete/{id}")]
     [Authorize(Roles = "Personnel,Admin")]
     public async Task<ActionResult> Delete(int id)
     {

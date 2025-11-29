@@ -98,9 +98,9 @@ public class AppointmentController : ControllerBase
     }
 
     // ----------------------------------------------------
-    // GET: api/appointments/5
+    // GET: api/appointments/
     // ----------------------------------------------------
-    [HttpGet("{id:int}")]
+    [HttpGet("{id}")]
     public async Task<ActionResult<AppointmentDto>> Get(int id)
     {
         var appt = await _appointmentRepository.GetByIdAsync(id);
@@ -222,7 +222,7 @@ public class AppointmentController : ControllerBase
     // - Patient: kan bare endre egne, og vi låser Status til "Booked"
     // - Personnel/Admin: kan endre alt
     // ----------------------------------------------------
-    [HttpPut("update/{id:int}")]
+    [HttpPut("update/{id}")]
     public async Task<ActionResult> Update(int id, [FromBody] AppointmentCreateDto dto)
     {
         if (!ModelState.IsValid) return BadRequest(ModelState);
@@ -274,7 +274,7 @@ public class AppointmentController : ControllerBase
     // - Patient: bare egne
     // - Personnel/Admin: alt
     // ----------------------------------------------------
-    [HttpDelete("delete/{id:int}")]
+    [HttpDelete("delete/{id}")]
     public async Task<ActionResult> Delete(int id)
     {
         var appt = await _appointmentRepository.GetByIdAsync(id);
