@@ -43,6 +43,11 @@ packages/
 *.AssemblyInfo.cs
 *.Generated.cs
 
+# SQLite database files
+*.db
+*.db-shm
+*.db-wal
+
 # Logs
 *.log
 
