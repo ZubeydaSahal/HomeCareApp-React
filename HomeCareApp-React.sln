@@ -4,7 +4,7 @@ VisualStudioVersion = 17.5.2.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "HomeCareApp-React", "HomeCareApp-React", "{F519AD43-86EC-81B6-AC31-BA6E19E12C7E}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "api", "HomeCareApp-React\api\api.csproj", "{0CBAEE18-BC6D-BCCF-15EE-757E47D6DD4A}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "api", "api\api.csproj", "{0CBAEE18-BC6D-BCCF-15EE-757E47D6DD4A}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
