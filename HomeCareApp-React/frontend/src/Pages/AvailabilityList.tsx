@@ -18,7 +18,7 @@ const AvailabilityList: React.FC = () => {
     try {
       const data = await AvailabilityService.fetchAvailabilities();
       setAvailabilities(data);
-      console.log("Availabilities from API:", data);
+
     } catch (error: unknown) {
       if (error instanceof Error) {
         console.error("Error fetching availabilities:", error.message);

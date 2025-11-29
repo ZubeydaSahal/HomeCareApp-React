@@ -1,9 +1,16 @@
+// src/App.tsx
 import React from "react";
-import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
+import {
+  BrowserRouter as Router,
+  Routes,
+  Route,
+  Navigate,
+} from "react-router-dom";
 import Container from "react-bootstrap/Container";
 
 import HomePage from "./home/HomePage";
 import NavMenu from "./shared/NavMenu";
+
 import AvailabilityCreate from "./Pages/AvailabilityCreate";
 import AvailbilityUpdate from "./Pages/AvailabilityUpdate";
 import AvailabilityListPage from "./Pages/AvailabilityList";
@@ -17,9 +24,15 @@ import RegisterPage from "./auth/RegisterPage";
 import ProtectedRoute from "./auth/ProtectedRoute";
 import { AuthProvider } from "./auth/AuthContext";
 
+import DashboardPage from "./dashboard/DashboardPage";
+
+// Admin-sider
+import AdminPatientsPage from "./admin/AdminPatientsPage";
+import AdminPersonnelPage from "./admin/AdminPersonnelPage";
+
 import "./App.css";
 
-const App = () => {
+const App: React.FC = () => {
   return (
     <AuthProvider>
       <Router>
@@ -34,7 +47,10 @@ const App = () => {
 
             {/* Alt inni ProtectedRoute krever innlogging */}
             <Route element={<ProtectedRoute />}>
-              {/* Availability */}
+              {/* Dashboard for alle innloggede (velger selv Patient/Personnel/Admin) */}
+              <Route path="/dashboard" element={<DashboardPage />} />
+
+              {/* Availability – kun synlig i meny for Personnel/Admin */}
               <Route path="/availability" element={<AvailabilityListPage />} />
               <Route path="/availability/create" element={<AvailabilityCreate />} />
               <Route
@@ -42,7 +58,7 @@ const App = () => {
                 element={<AvailbilityUpdate />}
               />
 
-              {/* Appointments */}
+              {/* Appointments – for innloggede brukere */}
               <Route path="/appointments" element={<AppointmentListPage />} />
               <Route
                 path="/appointments/create"
@@ -52,6 +68,10 @@ const App = () => {
                 path="/appointments/edit/:appointmentId"
                 element={<AppointmentUpdatePage />}
               />
+
+              {/* Admin-sider – komponentene sjekker selv at user.role === "Admin" */}
+              <Route path="/admin" element={<AdminPatientsPage />} />
+              <Route path="/admin/personnel" element={<AdminPersonnelPage />} />
             </Route>
 
             {/* Fallback */}

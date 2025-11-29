@@ -10,13 +10,14 @@ const NavMenu: React.FC = () => {
   const { user } = useAuth();
 
   const isAuthenticated = !!user;
-  const isPersonnel = user?.role === "Personnel"; 
-  console.log("NavMenu - isAuthenticated:", isAuthenticated, "isPersonnel:", isPersonnel);
-  console.log("User:", user);
+  const isPersonnel = user?.role === "Personnel";
+  const isAdmin = user?.role === "Admin";
+  const isPatient = user?.role === "Patient";
+
   return (
     <Navbar expand="lg" bg="dark" variant="dark" className="mb-4">
       <Container>
-        <Navbar.Brand as={Link} to="/">
+        <Navbar.Brand as={Link} to={isAuthenticated ? "/dashboard" : "/"}>
           HomeCareApp
         </Navbar.Brand>
 
@@ -24,8 +25,8 @@ const NavMenu: React.FC = () => {
 
         <Navbar.Collapse id="main-navbar">
           <Nav className="me-auto">
-            {/* Offentlig landingsside */}
-            <Nav.Link as={Link} to="/">
+            {/* Home-lenke: til /dashboard hvis innlogget, ellers / */}
+            <Nav.Link as={Link} to={isAuthenticated ? "/dashboard" : "/"}>
               Home
             </Nav.Link>
 
@@ -42,15 +43,31 @@ const NavMenu: React.FC = () => {
               </>
             )}
 
-            {/* Appointments: for alle som er logget inn (både patient og personnel) */}
+            {/* Admin-meny kun for adminbrukere */}
+            {isAuthenticated && isAdmin && (
+              <NavDropdown title="Admin" id="admin-dropdown">
+                <NavDropdown.Item as={Link} to="/admin/patients">
+                  Patients
+                </NavDropdown.Item>
+                <NavDropdown.Item as={Link} to="/admin/personnel">
+                  Personnel
+                </NavDropdown.Item>
+              </NavDropdown>
+            )}
+
+            {/* Appointments: alle kan se liste, 
+               men bare Patient (og ev. Admin) kan lage new */}
             {isAuthenticated && (
               <NavDropdown title="Appointments" id="appointments-dropdown">
                 <NavDropdown.Item as={Link} to="/appointments">
                   All appointments
                 </NavDropdown.Item>
-                <NavDropdown.Item as={Link} to="/appointments/create">
-                  New appointment
-                </NavDropdown.Item>
+
+                {(isPatient || isAdmin) && (
+                  <NavDropdown.Item as={Link} to="/appointments/create">
+                    New appointment
+                  </NavDropdown.Item>
+                )}
               </NavDropdown>
             )}
           </Nav>

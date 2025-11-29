@@ -2,13 +2,19 @@ import React, { useEffect, useState } from "react";
 import { fetchAppointments, deleteAppointment } from "./AppointmentService";
 import { Appointment } from "../../types/Appointment";
 import AppointmentTable from "./AppointmentTable";
+import { Modal, Button, Alert, Spinner } from "react-bootstrap";
 
 const AppointmentList: React.FC = () => {
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Hent alle avtaler ved mount
+  // state for sletting
+  const [showConfirm, setShowConfirm] = useState(false);
+  const [selectedAppt, setSelectedAppt] = useState<Appointment | null>(null);
+  const [deleting, setDeleting] = useState(false);
+
+  // Hent alle avtaler 
   useEffect(() => {
     const load = async () => {
       try {
@@ -24,31 +30,105 @@ const AppointmentList: React.FC = () => {
     load();
   }, []);
 
-  const handleDelete = async (id: number) => {
-    if (!window.confirm("Are you sure you want to delete this appointment?")) {
-      return;
-    }
+  // Når bruker klikker "Delete" i tabellen
+  const handleRequestDelete = (id: number) => {
+    const appt = appointments.find((a) => a.id === id) || null;
+    setSelectedAppt(appt);
+    setShowConfirm(true);
+  };
+
+  const handleConfirmClose = () => {
+    setShowConfirm(false);
+    setSelectedAppt(null);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!selectedAppt) return;
 
     try {
-      await deleteAppointment(id);
-      setAppointments((prev) => prev.filter((a) => a.id !== id));
+      setDeleting(true);
+      await deleteAppointment(selectedAppt.id);
+      setAppointments((prev) => prev.filter((a) => a.id !== selectedAppt.id));
+      handleConfirmClose();
     } catch (err: any) {
       console.error("Error deleting appointment:", err);
-      alert(err.message ?? "Could not delete appointment");
+      setError(err.message ?? "Could not delete appointment");
+    } finally {
+      setDeleting(false);
     }
   };
 
-  if (loading) return <p>Loading appointments...</p>;
-  if (error) return <p className="text-danger">{error}</p>;
+  if (loading)
+    return (
+      <div className="mt-3">
+        <Spinner animation="border" role="status" /> Loading appointments...
+      </div>
+    );
 
   return (
     <div>
       <h2 className="fw-bold mb-3">Appointments</h2>
+
+      {error && (
+        <Alert variant="danger" onClose={() => setError(null)} dismissible>
+          {error}
+        </Alert>
+      )}
+
       {appointments.length === 0 ? (
         <p>No appointments found.</p>
       ) : (
-        <AppointmentTable appointments={appointments} onDelete={handleDelete} />
+        <AppointmentTable
+          appointments={appointments}
+          onDelete={handleRequestDelete}
+        />
       )}
+
+      {/* Bekreftelses-modal */}
+      <Modal show={showConfirm} onHide={handleConfirmClose} centered>
+        <Modal.Header closeButton>
+          <Modal.Title>Delete appointment</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          {selectedAppt ? (
+            <>
+              <p>Are you sure you want to delete this appointment?</p>
+              <ul>
+                <li>
+                  <strong>Task:</strong>{" "}
+                  {selectedAppt.taskDescription ?? "Home care visit"}
+                </li>
+                <li>
+                  <strong>Date:</strong>{" "}
+                  {new Date(selectedAppt.date).toLocaleDateString("nb-NO")}
+                </li>
+                <li>
+                  <strong>Time:</strong>{" "}
+                  {selectedAppt.startTime.substring(0, 5)} –{" "}
+                  {selectedAppt.endTime.substring(0, 5)}
+                </li>
+              </ul>
+              <p className="text-danger mb-0">
+                This action cannot be undone.
+              </p>
+            </>
+          ) : (
+            <p>No appointment selected.</p>
+          )}
+        </Modal.Body>
+        <Modal.Footer>
+          <Button variant="secondary" onClick={handleConfirmClose} disabled={deleting}>
+            Cancel
+          </Button>
+          <Button
+            variant="danger"
+            onClick={handleConfirmDelete}
+            disabled={deleting || !selectedAppt}
+          >
+            {deleting ? "Deleting..." : "Delete"}
+          </Button>
+        </Modal.Footer>
+      </Modal>
     </div>
   );
 };

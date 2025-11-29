@@ -17,7 +17,6 @@ const AvailabilityTable: React.FC<Props> = ({
     const db = new Date(b.date).getTime();
     if (da !== db) return da - db;
 
-    // sorter også på startTime hvis dato er lik
     const ta = a.startTime ?? "";
     const tb = b.startTime ?? "";
     return ta.localeCompare(tb);

@@ -9,7 +9,7 @@ namespace HomeCareApp.Models
         public int Id { get; set; }
 
         [Required]
-        [Display(Name = "Client")]
+        [Display(Name = "Client")]  
         public string ClientId { get; set; } = string.Empty;
 
         [ForeignKey(nameof(ClientId))]

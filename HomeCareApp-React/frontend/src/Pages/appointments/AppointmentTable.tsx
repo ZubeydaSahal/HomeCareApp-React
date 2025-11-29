@@ -1,7 +1,7 @@
-
+// src/Pages/appointments/AppointmentTable.tsx
 import React from "react";
 import { Table, Button } from "react-bootstrap";
-import { Link, LinkProps } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { Appointment } from "../../types/Appointment";
 
 interface AppointmentTableProps {
@@ -12,7 +12,7 @@ interface AppointmentTableProps {
 const formatDate = (dateStr: string) =>
   new Date(dateStr).toLocaleDateString("no-NO");
 
-const formatTime = (timeStr: string) => timeStr.substring(0, 5); 
+const formatTime = (timeStr: string) => timeStr.substring(0, 5);
 
 const AppointmentTable: React.FC<AppointmentTableProps> = ({
   appointments,
@@ -77,35 +77,40 @@ const AppointmentTable: React.FC<AppointmentTableProps> = ({
                     <span className="badge bg-danger">Cancelled</span>
                   )}
                 </td>
+
+                {/* Patient */}
                 <td className="py-3 px-4 text-dark">
-                  {a.clientName ?? a.clientId}
+                  {a.clientName ?? "Unknown"}
                 </td>
+
+                {/* Personnel */}
                 <td className="py-3 px-4 text-dark">
-                  {a.personnelName ?? a.personnelId}
+                  {a.personnelName ?? "Unknown"}
                 </td>
+
+                {/* Actions */}
                 <td className="py-3 px-4 text-dark text-end">
-  <Link
-    to={`/appointments/edit/${a.id}`}
-    className="btn btn-outline-secondary btn-sm me-2"
-  >
-    Edit
-  </Link>
+                  <Link
+                    to={`/appointments/edit/${a.id}`}
+                    className="btn btn-outline-secondary btn-sm me-2"
+                  >
+                    Edit
+                  </Link>
 
-  {onDelete ? (
-    <Button
-      size="sm"
-      variant="outline-danger"
-      onClick={() => onDelete(a.id)}
-    >
-      Delete
-    </Button>
-  ) : (
-    <Button size="sm" variant="outline-secondary" disabled>
-      Delete
-    </Button>
-  )}
-</td>
-
+                  {onDelete ? (
+                    <Button
+                      size="sm"
+                      variant="outline-danger"
+                      onClick={() => onDelete(a.id)}
+                    >
+                      Delete
+                    </Button>
+                  ) : (
+                    <Button size="sm" variant="outline-secondary" disabled>
+                      Delete
+                    </Button>
+                  )}
+                </td>
               </tr>
             ))}
           </tbody>

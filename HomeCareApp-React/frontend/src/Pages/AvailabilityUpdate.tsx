@@ -12,7 +12,7 @@ const AvailabilityUpdate: React.FC = () => {
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Hent availability fra API når komponenten mountes
+ 
   useEffect(() => {
     const loadAvailability = async () => {
       if (!availabilityId) {
@@ -22,7 +22,7 @@ const AvailabilityUpdate: React.FC = () => {
       }
 
       try {
-        const data = await fetchAvailabilities(availabilityId); // bruker service med auth-header
+        const data = await fetchAvailabilities(availabilityId); 
         setAvailability(data);
       } catch (err) {
         console.error("There was a problem with the fetch operation:", err);

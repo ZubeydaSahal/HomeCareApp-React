@@ -12,13 +12,13 @@ namespace HomeCareApp.Controllers;
 [ApiController]
 [Route("api/appointments")]
 [Authorize(Roles = "Personnel,Patient,Admin")]
-public class AppointmentApiController : ControllerBase
+public class AppointmentController : ControllerBase
 {
     private readonly IAppointmentRepository _appointmentRepository;
     private readonly IAvailabilityRepository _availabilityRepository;
     private readonly UserManager<AppUser> _userManager;
 
-    public AppointmentApiController(
+    public AppointmentController(
         IAppointmentRepository appointmentRepository,
         IAvailabilityRepository availabilityRepository,
         UserManager<AppUser> userManager)
@@ -85,7 +85,7 @@ public class AppointmentApiController : ControllerBase
             ClientName     = a.Client?.FullName,
             PersonnelId    = a.Availability?.PersonnelId,
             PersonnelName  = a.Availability?.Personnel?.FullName,
-            Date           = a.Availability?.Date ?? default, // DateOnly
+            Date           = a.Availability?.Date ?? default, 
 
             // Entiteten har TimeSpan, DTO har TimeOnly
             StartTime      = TimeOnly.FromTimeSpan(a.StartTime),
@@ -102,28 +102,52 @@ public class AppointmentApiController : ControllerBase
     // GET: api/appointments/5
     // ----------------------------------------------------
     [HttpGet("{id:int}")]
-    public async Task<ActionResult<AppointmentDto>> Get(int id)
+public async Task<ActionResult<AppointmentDto>> Get(int id)
+{
+    var appt = await _appointmentRepository.GetByIdAsync(id);
+    if (appt == null) return NotFound();
+
+    var userId      = GetCurrentUserId();
+    var isPatient   = User.IsInRole("Patient");
+    var isPersonnel = User.IsInRole("Personnel");
+    var isAdmin     = User.IsInRole("Admin");
+
+    // Admin kan alltid
+    if (!isAdmin && !string.IsNullOrEmpty(userId))
     {
-        var a = await _appointmentRepository.GetByIdAsync(id);
-        if (a == null) return NotFound();
-
-        var dto = new AppointmentDto
+        if (isPatient && appt.ClientId != userId)
         {
-            Id             = a.Id,
-            AvailabilityId = a.AvailabilityId,
-            ClientId       = a.ClientId,
-            ClientName     = a.Client?.FullName,
-            PersonnelId    = a.Availability?.PersonnelId,
-            PersonnelName  = a.Availability?.Personnel?.FullName,
-            Date           = a.Availability?.Date ?? default,
-            StartTime      = TimeOnly.FromTimeSpan(a.StartTime),
-            EndTime        = TimeOnly.FromTimeSpan(a.EndTime),
-            TaskDescription = a.TaskDescription,
-            Status          = a.Status
-        };
+            return Forbid();
+        }
 
-        return Ok(dto);
+        if (isPersonnel)
+        {
+            var personnelId = appt.Availability?.PersonnelId;
+            if (personnelId != userId)
+            {
+                return Forbid();
+            }
+        }
     }
+
+    var dto = new AppointmentDto
+    {
+        Id             = appt.Id,
+        AvailabilityId = appt.AvailabilityId,
+        ClientId       = appt.ClientId,
+        ClientName     = appt.Client?.FullName,
+        PersonnelId    = appt.Availability?.PersonnelId,
+        PersonnelName  = appt.Availability?.Personnel?.FullName,
+        Date           = appt.Availability?.Date ?? default,
+        StartTime      = TimeOnly.FromTimeSpan(appt.StartTime),
+        EndTime        = TimeOnly.FromTimeSpan(appt.EndTime),
+        TaskDescription = appt.TaskDescription,
+        Status          = appt.Status
+    };
+
+    return Ok(dto);
+}
+
 
     // ----------------------------------------------------
     // POST: api/appointments/create
@@ -199,7 +223,6 @@ public class AppointmentApiController : ControllerBase
     // PUT: api/appointments/update/5
     // - Patient: kan bare endre egne, og vi låser Status til "Booked"
     // - Personnel/Admin: kan endre alt
-    // DTO: StartTime/EndTime som "HH:mm"
     // ----------------------------------------------------
     [HttpPut("update/{id:int}")]
     public async Task<ActionResult> Update(int id, [FromBody] AppointmentCreateDto dto)

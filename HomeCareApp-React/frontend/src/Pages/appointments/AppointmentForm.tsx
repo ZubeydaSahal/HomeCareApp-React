@@ -40,7 +40,7 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({
   );
   const [submitting, setSubmitting] = useState(false);
 
-  // 🔥 Viktig: sett availabilityId når options er lastet inn
+  
   useEffect(() => {
     if (!initialValues?.availabilityId && availabilityOptions.length > 0 && availabilityId === 0) {
       setAvailabilityId(Number(availabilityOptions[0].value));
@@ -61,7 +61,7 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({
       availabilityId,
       clientId: clientId || undefined,
       taskDescription,
-      startTime, // "HH:mm"
+      startTime, 
       endTime,
       status,
     };
@@ -81,23 +81,6 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({
       <div className="row">
         <div className="col-md-6">
           <Form onSubmit={handleSubmit}>
-            {isPersonnel && (
-              <Form.Group className="mb-3">
-                <Form.Label>Client</Form.Label>
-                <Form.Select
-                  value={clientId}
-                  onChange={(e) => setClientId(e.target.value)}
-                >
-                  <option value="">-- Select client --</option>
-                  {clientOptions.map((c) => (
-                    <option key={c.value} value={c.value}>
-                      {c.label}
-                    </option>
-                  ))}
-                </Form.Select>
-              </Form.Group>
-            )}
-
             <Form.Group className="mb-3">
               <Form.Label>Available Day/Slot</Form.Label>
               <Form.Select

@@ -1,4 +1,3 @@
-// src/Pages/appointments/AppointmentCreatePage.tsx
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import AppointmentForm from "./AppointmentForm";
@@ -15,18 +14,18 @@ const AppointmentCreatePage: React.FC = () => {
   const navigate = useNavigate();
   const [availabilityOptions, setAvailabilityOptions] = useState<Option[]>([]);
   const [clientOptions] = useState<Option[]>([]);
-  const isPersonnel = false; // du er Patient her
+  const isPersonnel = false; 
 
   useEffect(() => {
     const load = async () => {
-      const avail = await fetchAvailabilities();  // GET /api/availability/list
+      const avail = await fetchAvailabilities(); 
 
       // ledige slots = ingen appointment tilknyttet
       const free = avail.filter((a: any) => !a.appointmentId);
 
       setAvailabilityOptions(
         free.map((a: any) => ({
-          value: a.id, // ⬅️ dette må være Availability.Id
+          value: a.id, 
           label: `${a.personnelName ?? "Unknown"} - ${a.date.substring(0, 10)} ${a.startTime.substring(0,5)}-${a.endTime.substring(0,5)}`,
         }))
       );
@@ -35,7 +34,6 @@ const AppointmentCreatePage: React.FC = () => {
   }, []);
 
   const handleSubmit = async (payload: AppointmentCreatePayload) => {
-    console.log("Create payload:", payload); // se i konsollen
     await createAppointment(payload);
     navigate("/appointments");
   };

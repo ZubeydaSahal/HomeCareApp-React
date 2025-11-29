@@ -12,12 +12,12 @@ namespace HomeCareApp.Controllers;
 [ApiController]
 [Route("api/availability")]
 [Authorize] 
-public class AvailabilityApiController : ControllerBase
+public class AvailabilityController : ControllerBase
 {
     private readonly IAvailabilityRepository _availabilityRepository;
     private readonly UserManager<AppUser> _userManager;
 
-    public AvailabilityApiController(
+    public AvailabilityController(
         IAvailabilityRepository availabilityRepository,
         UserManager<AppUser> userManager)
     {
@@ -27,31 +27,49 @@ public class AvailabilityApiController : ControllerBase
 
     // --------------------------------------------------------------------
     // GET: api/availability/list
-    // Kan være åpen for alle (om du ønsker det)
     // --------------------------------------------------------------------
-    [HttpGet("list")]
-    public async Task<ActionResult<IEnumerable<AvailabilityDto>>> List()
+  [HttpGet("list")]
+public async Task<ActionResult<IEnumerable<AvailabilityDto>>> List()
+{
+    var list = await _availabilityRepository.GetAllAsync() ?? new List<Availability>();
+
+    var userId      = GetCurrentUserId();
+    var isAdmin     = User.IsInRole("Admin");
+    var isPersonnel = User.IsInRole("Personnel");
+    var isPatient   = User.IsInRole("Patient");
+
+    // Pleier (ikke admin) → bare egne slots
+    if (isPersonnel && !isAdmin && !string.IsNullOrEmpty(userId))
     {
-        var list = await _availabilityRepository.GetAllAsync();
-
-        var result = list.Select(a => new AvailabilityDto
-        {
-            Id = a.Id,
-            PersonnelId = a.PersonnelId,
-            PersonnelName = a.Personnel?.FullName,
-            Date = a.Date,
-            StartTime = a.StartTime,
-            EndTime = a.EndTime,
-            Notes = a.Notes,
-            AppointmentId = a.Appointment?.Id
-        });
-
-        return Ok(result);
+        list = list.Where(a => a.PersonnelId == userId).ToList();
     }
+
+    // Pasient → bare ledige slots (ikke booket)
+    if (isPatient)
+    {
+        list = list
+            .Where(a => a.Appointment == null)
+            .ToList();
+    }
+
+    var result = list.Select(a => new AvailabilityDto
+    {
+        Id            = a.Id,
+        PersonnelId   = a.PersonnelId,
+        PersonnelName = a.Personnel?.FullName,
+        Date          = a.Date,
+        StartTime     = a.StartTime,
+        EndTime       = a.EndTime,
+        Notes         = a.Notes,
+        AppointmentId = a.Appointment?.Id
+    });
+
+    return Ok(result);
+}
+
 
     // --------------------------------------------------------------------
     // GET: api/availability/5
-    // Kan også være åpen (eller fjern AllowAnonymous hvis du vil kreve login)
     // --------------------------------------------------------------------
     [HttpGet("{id:int}")]
     public async Task<ActionResult<AvailabilityDto>> Get(int id)
@@ -122,7 +140,6 @@ public async Task<ActionResult> Create([FromBody] AvailabilityCreateDto dto)
 }
 
 
-
     // --------------------------------------------------------------------
     // PUT: api/availability/update/5
     // Kun eier selv eller Admin får lov å oppdatere
@@ -142,7 +159,6 @@ public async Task<ActionResult> Update(int id, [FromBody] AvailabilityCreateDto 
         return Unauthorized("Could not read user id from token.");
     }
 
-    // Bruk roller direkte fra claims (det er billigere enn å slå opp i DB)
     var isAdmin = User.IsInRole("Admin");
 
     // Ikke admin → må være eier av availability
@@ -202,13 +218,8 @@ private string? GetCurrentUserId()
         return null;
     }
 
-    // SISTE NameIdentifier = GUID-en fra AspNetUsers.Id
-    var userId = nameIdClaims.Last().Value;
-
-    Console.WriteLine(
-        $"[AvailabilityApiController] NameId claims: {string.Join(" | ", nameIdClaims.Select(c => c.Value))}. Using userId={userId}");
-
-    return userId;
+   
+    return nameIdClaims.Last().Value;
 }
 
 }

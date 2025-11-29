@@ -12,7 +12,6 @@ namespace HomeCareApp.DTOs
         public string? PersonnelId { get; set; }
         public string? PersonnelName { get; set; }
 
-        // BYTT fra DateOnly til DateTime her:
         public DateTime Date { get; set; }
 
         public TimeOnly StartTime { get; set; }
