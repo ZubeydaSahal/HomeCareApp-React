@@ -16,7 +16,7 @@ const NavMenu: React.FC = () => {
   const isPatient = user?.role === "Patient";
 
   return (
-    <Navbar expand="lg" bg="white" variant="light" className="mb-4 navbar-custom">
+    <Navbar expand="lg" bg="white" className="mb-4 navbar-container">
       <Container>
         <Navbar.Brand as={Link} to="/">
           <img 
