@@ -1,5 +1,6 @@
 import React from "react";
-const HomePage = () => {
+
+const HomePage: React.FC = () => {
   return (
     <div className="text-center">
       <h1 className="display-4 mb-4">Welcome to HomeCare</h1>

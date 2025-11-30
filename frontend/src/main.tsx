@@ -3,13 +3,13 @@ import { createRoot } from 'react-dom/client'
 import 'bootstrap/dist/css/bootstrap.min.css'
 import './index.css'
 import App from './App' 
-import "bootstrap/dist/css/bootstrap.min.css";
 
+const rootElement = document.getElementById('root');
 
-const root = document.getElementById('root')
-
-createRoot(root).render(
-  <StrictMode>
-    <App />
-  </StrictMode>,
-)
+if (rootElement) {
+  createRoot(rootElement).render(
+    <StrictMode>
+      <App />
+    </StrictMode>,
+  );
+}
