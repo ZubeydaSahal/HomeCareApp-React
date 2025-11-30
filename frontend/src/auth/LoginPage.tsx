@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { useAuth } from "./AuthContext";
-import { useNavigate } from "react-router-dom";
-import { Form, Button, Container, Alert } from "react-bootstrap";
+import { useNavigate, Link } from "react-router-dom";
+import "../css/forms.css";
 
 const LoginPage: React.FC = () => {
   const [email, setEmail] = useState("");
@@ -23,36 +23,72 @@ const LoginPage: React.FC = () => {
   };
 
   return (
-    <Container className="mt-5">
-      <h2>Login</h2>
-      {error && <Alert variant="danger">{error}</Alert>}
-      <Form onSubmit={handleSubmit}>
-        <Form.Group className="mb-3" controlId="formBasicEmail">
-          <Form.Label>Email</Form.Label>
-          <Form.Control
-            type="email"
-            placeholder="Enter email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
-          />
-        </Form.Group>
+    <div className="auth-container">
+      {/* Carely Logo */}
+      <div className="login-logo">
+        <Link to="/">
+          <img src="/HomeCareApp-Logo.png" alt="Carely Logo" />
+        </Link>
+      </div>
 
-        <Form.Group className="mb-3" controlId="formBasicPassword">
-          <Form.Label>Password</Form.Label>
-          <Form.Control
-            type="password"
-            placeholder="Password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-          />
-        </Form.Group>
-        <Button variant="primary" type="submit">
-          Login
-        </Button>
-      </Form>
-    </Container>
+      <div className="auth-card">
+        {/* Header */}
+        <div className="auth-header">
+          <h2 className="auth-title">Welcome Back</h2>
+          <p className="auth-subtitle">Sign in to continue to Carely</p>
+        </div>
+
+        {/* Login Form */}
+        <form onSubmit={handleSubmit} className="auth-form">
+          {error && (
+            <div className="alert alert-danger" role="alert">
+              {error}
+            </div>
+          )}
+
+          <div className="mb-3">
+            <label htmlFor="email" className="form-label">
+              Email Address
+            </label>
+            <input
+              id="email"
+              type="email"
+              className="form-control"
+              placeholder="you@example.com"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+            />
+          </div>
+
+          <div className="mb-3">
+            <label htmlFor="password" className="form-label">
+              Password
+            </label>
+            <input
+              id="password"
+              type="password"
+              className="form-control"
+              placeholder="Enter your password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+            />
+          </div>
+
+          <button type="submit" className="btn btn-primary w-100">
+            Log In
+          </button>
+        </form>
+
+        {/* Footer */}
+        <div className="auth-footer">
+          <p className="mb-0">
+            Don't have an account? <Link to="/register">Register here</Link>
+          </p>
+        </div>
+      </div>
+    </div>
   );
 };
 

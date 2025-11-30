@@ -1,7 +1,7 @@
 import React from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "./AuthContext";
-import { Nav, Dropdown, Button } from "react-bootstrap";
+import { Nav, Dropdown } from "react-bootstrap";
 import "../css/navbar.css";
 
 const AuthSection: React.FC = () => {
@@ -23,22 +23,14 @@ const AuthSection: React.FC = () => {
       ) : (
         <>
           <Link to="/login">
-            <Button 
-              variant="outline-secondary" 
-              size="lg"
-              className="auth-btn-login"
-            >
+            <button className="auth-btn-login">
               Login
-            </Button>
+            </button>
           </Link>
           <Link to="/register">
-            <Button 
-              variant="secondary"
-              size="lg"
-              className="auth-btn-register"
-            >
+            <button className="auth-btn-register">
               Register
-            </Button>
+            </button>
           </Link>
         </>
       )}

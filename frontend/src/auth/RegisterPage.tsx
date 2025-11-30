@@ -1,15 +1,15 @@
 // src/auth/RegisterPage.tsx
 import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { Form, Button, Container, Alert } from "react-bootstrap";
+import { useNavigate, Link } from "react-router-dom";
 import * as authService from "./AuthService";
+import "../css/forms.css";
 
 const RegisterPage: React.FC = () => {
   const [formData, setFormData] = useState({
     fullName: "",
     email: "",
     password: "",
-    role: "Patient", // default
+    role: "", // empty by default to force user to choose
   });
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
@@ -43,78 +43,108 @@ const RegisterPage: React.FC = () => {
   };
 
   return (
-    <Container className="mt-5" style={{ maxWidth: "600px" }}>
-      <h2 className="mb-4">Register</h2>
+    <div className="auth-container">
+      <div className="auth-card">
+        {/* Header */}
+        <div className="auth-header">
+          <h2 className="auth-title">Create Account</h2>
+          <p className="auth-subtitle">Join Carely to get started</p>
+        </div>
 
-      {error && <Alert variant="danger">{error}</Alert>}
-      {success && <Alert variant="success">{success}</Alert>}
+        {/* Registration Form */}
+        <form onSubmit={handleSubmit} className="auth-form">
+          {error && (
+            <div className="alert alert-danger" role="alert">
+              {error}
+            </div>
+          )}
+          {success && (
+            <div className="alert alert-success" role="alert">
+              {success}
+            </div>
+          )}
 
-      <Form onSubmit={handleSubmit}>
-        <Form.Group className="mb-3">
-          <Form.Label>Full name</Form.Label>
-          <Form.Control
-            type="text"
-            name="fullName"
-            value={formData.fullName}
-            onChange={handleChange}
-            required
-            placeholder="e.g. Peter Patient"
-          />
-        </Form.Group>
-
-        <Form.Group className="mb-3">
-          <Form.Label>Email</Form.Label>
-          <Form.Control
-            type="email"
-            name="email"
-            value={formData.email}
-            onChange={handleChange}
-            required
-            placeholder="you@example.com"
-          />
-        </Form.Group>
-
-        <Form.Group className="mb-3">
-          <Form.Label>Password</Form.Label>
-          <Form.Control
-            type="password"
-            name="password"
-            value={formData.password}
-            onChange={handleChange}
-            required
-          />
-        </Form.Group>
-
-        {/* Rollevalg: Patient / Personnel */}
-        <Form.Group className="mb-4">
-          <Form.Label>I am registering as:</Form.Label>
-          <div className="d-flex gap-3 mt-1">
-            <Form.Check
-              type="radio"
-              id="role-patient"
-              name="role"
-              label="Patient"
-              value="Patient"
-              checked={formData.role === "Patient"}
+          <div className="mb-3">
+            <label htmlFor="fullName" className="form-label">
+              Full Name
+            </label>
+            <input
+              id="fullName"
+              type="text"
+              name="fullName"
+              className="form-control"
+              placeholder="Enter your full name"
+              value={formData.fullName}
               onChange={handleChange}
-            />
-            <Form.Check
-              type="radio"
-              id="role-personnel"
-              name="role"
-              label="Personnel"
-              value="Personnel"
-              checked={formData.role === "Personnel"}
-              onChange={handleChange}
+              required
             />
           </div>
-        </Form.Group>
 
-        <Button variant="primary" type="submit">
-          Register
-        </Button>
-      </Form>
-    </Container>
+          <div className="mb-3">
+            <label htmlFor="email" className="form-label">
+              Email Address
+            </label>
+            <input
+              id="email"
+              type="email"
+              name="email"
+              className="form-control"
+              placeholder="you@example.com"
+              value={formData.email}
+              onChange={handleChange}
+              required
+            />
+          </div>
+
+          <div className="mb-3">
+            <label htmlFor="password" className="form-label">
+              Password
+            </label>
+            <input
+              id="password"
+              type="password"
+              name="password"
+              className="form-control"
+              placeholder="Create a secure password"
+              value={formData.password}
+              onChange={handleChange}
+              required
+            />
+          </div>
+
+          <div className="mb-3">
+            <label htmlFor="role" className="form-label">
+              I am registering as
+            </label>
+            <select
+              id="role"
+              name="role"
+              className="form-select"
+              value={formData.role}
+              onChange={handleChange}
+              required
+            >
+              <option value="">Choose your role...</option>
+              <option value="Patient">Patient - Receiving care</option>
+              <option value="Personnel">
+                Healthcare Personnel - Providing care
+              </option>
+            </select>
+          </div>
+
+          <button type="submit" className="btn btn-primary w-100">
+            <i className="bi bi-person-plus me-2"></i>Create Account
+          </button>
+        </form>
+
+        {/* Footer */}
+        <div className="auth-footer">
+          <p className="mb-0">
+            Already have an account? <Link to="/login">Log in here</Link>
+          </p>
+        </div>
+      </div>
+    </div>
   );
 };
 
