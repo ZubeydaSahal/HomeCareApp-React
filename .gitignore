@@ -46,3 +46,8 @@ packages/
 # Logs
 *.log
 
+# SQLite Database Files
+*.db
+*.db-shm
+*.db-wal
+
