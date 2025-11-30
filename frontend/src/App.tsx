@@ -4,6 +4,7 @@ import {
   Routes,
   Route,
   Navigate,
+  useLocation,
 } from "react-router-dom";
 
 import HomePage from "./home/HomePage";
@@ -30,14 +31,15 @@ import AdminPersonnelPage from "./admin/AdminPersonnelPage";
 
 import "./App.css";
 
-const App: React.FC = () => {
-  return (
-    <AuthProvider>
-      <Router>
-        <NavMenu />
+const AppContent: React.FC = () => {
+  const location = useLocation();
+  const hideNavbar = ["/login", "/register"].includes(location.pathname);
 
-        <div className="app-content">
-          <Routes>
+  return (
+    <>
+      {!hideNavbar && <NavMenu />}
+      <div className="app-content">
+        <Routes>
             {/* Offentlige sider */}
             <Route path="/" element={<HomePage />} />
             <Route path="/login" element={<LoginPage />} />
@@ -79,6 +81,15 @@ const App: React.FC = () => {
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </div>
+      </>
+  );
+};
+
+const App: React.FC = () => {
+  return (
+    <AuthProvider>
+      <Router>
+        <AppContent />
       </Router>
     </AuthProvider>
   );
