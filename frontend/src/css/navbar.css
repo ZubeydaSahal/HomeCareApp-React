@@ -15,18 +15,26 @@
 /* Auth Section */
 .auth-nav {
     align-items: center;
-    gap: 0.5rem;
+    gap: 0.75rem;
 }
 
 /* Auth Buttons */
+.auth-btn-login,
+.auth-btn-register {
+    font-family: var(--font-family-primary);
+    font-size: 1.1rem;
+    font-weight: 500;
+    padding: 0.5rem 1.5rem;
+    border-radius: var(--border-radius);
+    border: 1px solid;
+    cursor: pointer;
+    text-decoration: none;
+}
+
 .auth-btn-login {
     border-color: var(--secondary);
     color: var(--secondary);
     background-color: transparent;
-    font-size: 1.1rem;
-    padding-left: 1.5rem;
-    padding-right: 1.5rem;
-    transition: all var(--transition-base);
 }
 
 .auth-btn-login:hover {
@@ -38,16 +46,12 @@
 .auth-btn-register {
     background-color: var(--secondary);
     border-color: var(--secondary);
-    color: white;
-    font-size: 1.1rem;
-    padding-left: 1.5rem;
-    padding-right: 1.5rem;
-    transition: all var(--transition-base);
+    color: var(--white);
 }
 
 .auth-btn-register:hover {
-    background-color: var(--secondary);
-    border-color: var(--secondary);
+    background-color: var(--secondary-hover);
+    border-color: var(--secondary-hover);
 }
 
 
