@@ -1,3 +1,5 @@
+import { Availability } from "../types/Availability";
+
 const API_URL = import.meta.env.VITE_API_URL;
 
 const getAuthHeaders = () => {
@@ -25,7 +27,7 @@ const handleResponse = async (response: Response) => {
 };
 
 // Get list of availabilities
-export const fetchAvailabilities = async (availabilityId?: string) => {
+export const fetchAvailabilities = async (availabilityId?: string): Promise<Availability | Availability[]> => {
   const url = availabilityId
     ? `${API_URL}/api/availability/${availabilityId}`
     : `${API_URL}/api/availability/list`;
@@ -38,7 +40,7 @@ export const fetchAvailabilities = async (availabilityId?: string) => {
 };
 
 // Create new availability
-export const createAvailability = async (availability: any) => {
+export const createAvailability = async (availability: Availability): Promise<Availability> => {
   const headers = getAuthHeaders();
   console.log("createAvailability headers:", headers);
 
@@ -53,8 +55,8 @@ export const createAvailability = async (availability: any) => {
 // Update existing availability
 export const updateAvailability = async (
   availabilityId: number,
-  availability: any
-) => {
+  availability: Availability
+): Promise<Availability> => {
   const response = await fetch(
     `${API_URL}/api/availability/update/${availabilityId}`,
     {
@@ -67,7 +69,7 @@ export const updateAvailability = async (
 };
 
 // Delete availability
-export const deleteAvailability = async (availabilityId: number) => {
+export const deleteAvailability = async (availabilityId: number): Promise<void> => {
   const response = await fetch(
     `${API_URL}/api/availability/delete/${availabilityId}`,
     {

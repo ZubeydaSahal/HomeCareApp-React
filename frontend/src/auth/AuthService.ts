@@ -20,7 +20,7 @@ export const login = async (
   return response.json();
 };
 
-export const register = async (userData: RegisterDto): Promise<any> => {
+export const register = async (userData: RegisterDto): Promise<{ message: string }> => {
   const response = await fetch(`${API_URL}/api/Auth/register`, {
     method: "POST",
     headers: {
