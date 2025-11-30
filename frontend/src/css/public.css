@@ -1,0 +1,316 @@
+/* Public Pages Styles - Homepage & Login Page */
+
+/* ===================================
+   Hero Section (Home Page)
+   =================================== */
+
+.hero {
+    background: var(--white);
+    padding: 5rem 2rem;
+    width: 100%;
+    margin: 0;
+}
+
+.hero-title {
+    font-family: var(--font-family-primary);
+    font-size: 3.75rem;
+    font-weight: 600;
+    color: var(--secondary);
+    margin-bottom: 1.5rem;
+    line-height: 1.1;
+}
+
+.hero-text {
+    font-family: var(--font-family-heading);
+    font-size: 1.375rem;
+    font-weight: 300;
+    color: var(--dark);
+    margin-bottom: 2rem;
+    line-height: 1.6;
+    max-width: 800px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+/* Hero Content Container */
+.hero-content {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 2rem;
+}
+
+/* Feature Grid */
+.feature-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(13rem, 1fr));
+    gap: 1rem;
+    margin: 2rem auto;
+}
+
+.feature-card {
+    background: white;
+    padding: 2rem;
+    border-radius: var(--border-radius);
+    border: 1px solid var(--secondary);
+    text-align: center;
+}
+
+.feature-card:hover {
+    cursor: pointer;
+}
+
+.feature-icon {
+    font-size: 3rem;
+    color: var(--secondary);
+    margin-bottom: 1rem;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 80px;
+}
+
+.feature-title {
+    font-family: var(--font-family-heading);
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--dark);
+    margin-bottom: 0.75rem;
+}
+
+.feature-text {
+    font-family: var(--font-family-primary);
+    font-size: 1rem;
+    font-weight: 300;
+    color: #666;
+    line-height: 1.5;
+}
+
+/* Hero Buttons */
+.hero-buttons {
+    display: flex;
+    justify-content: center;
+    gap: 1.5rem;
+    flex-wrap: wrap;
+    margin-top: 3rem;
+}
+
+.cta,
+.scroll-down {
+    font-family: var(--font-family-primary);
+    font-size: 1.25rem;
+    font-weight: 500;
+    padding: 1rem 2rem;
+    border-radius: var(--border-radius);
+    text-decoration: none;
+    transition: all var(--transition-base);
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    min-height: 56px;
+    letter-spacing: 0.02em;
+    border: 1px solid;
+}
+
+.cta {
+    background-color: var(--primary);
+    color: var(--white);
+    border-color: var(--primary);
+}
+
+.cta:hover,
+.cta:focus {
+    background-color: var(--primary-hover);
+    border-color: var(--primary-hover);
+    color: var(--white);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 137, 123, 0.3);
+}
+
+.scroll-down {
+    background-color: var(--secondary);
+    color: var(--white);
+    border-color: var(--secondary);
+}
+
+.scroll-down:hover,
+.scroll-down:focus {
+    background-color: var(--white);
+    color: var(--secondary);
+    border-color: var(--secondary);
+    transform: translateY(-2px);
+}
+
+/* ===================================
+   Login/Register Page Styles
+   =================================== */
+
+.auth-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 80vh;
+    padding: 2rem;
+}
+
+.auth-card {
+    background: white;
+    padding: 3rem;
+    border-radius: 12px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+    width: 100%;
+    max-width: 450px;
+}
+
+.auth-card h2 {
+    text-align: center;
+    color: var(--dark);
+    margin-bottom: 2rem;
+    font-size: 2rem;
+}
+
+.auth-form {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.form-group label {
+    color: #555;
+    font-weight: 500;
+    font-size: 0.95rem;
+}
+
+.form-group input,
+.form-group select {
+    padding: 0.75rem;
+    border: 2px solid #e0e0e0;
+    border-radius: 6px;
+    font-size: 1rem;
+    font-family: var(--font-family-primary);
+    transition: border-color var(--transition-base);
+}
+
+.form-group input:focus,
+.form-group select:focus {
+    outline: none;
+    border-color: var(--primary);
+}
+
+.form-group input:hover,
+.form-group select:hover {
+    border-color: #b8b8b8;
+}
+
+.auth-button {
+    padding: 1rem;
+    background-color: var(--primary);
+    color: var(--white);
+    border: none;
+    border-radius: 6px;
+    font-size: 1.1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all var(--transition-base);
+}
+
+.auth-button:hover {
+    background-color: var(--primary-hover);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 137, 123, 0.3);
+}
+
+.auth-button:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.auth-switch {
+    text-align: center;
+    margin-top: 1.5rem;
+    color: #666;
+}
+
+.auth-switch a {
+    color: var(--primary);
+    text-decoration: none;
+    font-weight: 600;
+}
+
+.auth-switch a:hover {
+    text-decoration: underline;
+}
+
+.error-message {
+    background: #fee;
+    color: #c33;
+    padding: 1rem;
+    border-radius: 6px;
+    border-left: 4px solid #c33;
+    font-size: 0.95rem;
+}
+
+.success-message {
+    background: #efe;
+    color: #3c3;
+    padding: 1rem;
+    border-radius: 6px;
+    border-left: 4px solid #3c3;
+    font-size: 0.95rem;
+}
+
+/* ===================================
+   Responsive Design
+   =================================== */
+
+@media (max-width: 768px) {
+    .hero-title {
+        font-size: 2.5rem;
+    }
+
+    .hero-text {
+        font-size: 1.125rem;
+    }
+
+    .feature-grid {
+        grid-template-columns: 1fr;
+        gap: 1.5rem;
+    }
+
+    .hero-buttons {
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .cta,
+    .scroll-down {
+        width: 100%;
+        max-width: 300px;
+        justify-content: center;
+    }
+
+    .auth-card {
+        padding: 2rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .hero-title {
+        font-size: 2rem;
+    }
+
+    .hero-text {
+        font-size: 1rem;
+    }
+
+    .cta,
+    .scroll-down {
+        font-size: 1.125rem;
+    }
+}

@@ -1,0 +1,61 @@
+/* Navbar Styles */
+
+/* Navbar Container */
+.navbar-custom {
+    padding-top: 1rem;
+    padding-bottom: 1rem;
+}
+
+/* Logo */
+.navbar-logo {
+    height: 50px;
+}
+
+/* Auth Section */
+.auth-nav {
+    align-items: center;
+    gap: 0.5rem;
+}
+
+/* Auth Buttons */
+.auth-btn-login {
+    border-color: var(--secondary) !important;
+    color: var(--secondary) !important;
+    background-color: transparent !important;
+    font-size: 1.1rem;
+    padding-left: 1.5rem;
+    padding-right: 1.5rem;
+    transition: all var(--transition-base);
+}
+
+.auth-btn-login:hover {
+    background-color: var(--secondary) !important;
+    color: white !important;
+}
+
+.auth-btn-register {
+    background-color: var(--secondary) !important;
+    border-color: var(--secondary) !important;
+    color: white !important;
+    font-size: 1.1rem;
+    padding-left: 1.5rem;
+    padding-right: 1.5rem;
+    transition: all var(--transition-base);
+}
+
+.auth-btn-register:hover {
+    background-color: var(--primary-hover) !important;
+    border-color: var(--primary-hover) !important;
+    opacity: 0.9;
+}
+
+/* User Dropdown */
+.user-dropdown-toggle {
+    font-size: 1.1rem;
+    font-weight: 500;
+    color: var(--dark);
+}
+
+.user-dropdown-toggle:hover {
+    color: var(--secondary);
+}

@@ -5,7 +5,6 @@ import {
   Route,
   Navigate,
 } from "react-router-dom";
-import Container from "react-bootstrap/Container";
 
 import HomePage from "./home/HomePage";
 import NavMenu from "./shared/NavMenu";
@@ -37,7 +36,7 @@ const App: React.FC = () => {
       <Router>
         <NavMenu />
 
-        <Container>
+        <div className="app-content">
           <Routes>
             {/* Offentlige sider */}
             <Route path="/" element={<HomePage />} />
@@ -79,7 +78,7 @@ const App: React.FC = () => {
             {/* Fallback */}
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
-        </Container>
+        </div>
       </Router>
     </AuthProvider>
   );
