@@ -1,33 +1,20 @@
 {
     "compilerOptions": {
-        "target": "ES2020",
-        "useDefineForClassFields": true,
-        "lib": [
-            "ES2020",
-            "DOM",
-            "DOM.Iterable"
-        ],
-        "module": "ESNext",
-        "skipLibCheck": true,
-        /* Bundler mode */
-        "moduleResolution": "bundler",
-        "allowImportingTsExtensions": true,
-        "resolveJsonModule": true,
-        "isolatedModules": true,
-        "noEmit": true,
-        "jsx": "react-jsx",
-        /* Linting */
-        "strict": true,
-        "noUnusedLocals": true,
-        "noUnusedParameters": true,
-        "noFallthroughCasesInSwitch": true
+        "target": "ESNext", // Output modern JavaScript; let Vite handle browser compatibility
+        "module": "ESNext", // Use native ES modules (import/export) instead of CommonJS
+        "moduleResolution": "node", // How to find modules - "node" works for npm packages
+        "jsx": "react-jsx", // Use the new JSX transform (React 17+); works with Vite
+        "strict": true, // Enable all strict type-checking options
+        "esModuleInterop": true, // Allow default imports from CommonJS modules
+        "skipLibCheck": true, // Skip type-checking for library files in node_modules (faster builds)
+        "forceConsistentCasingInFileNames": true, // Enforce consistent casing in file names across imports
+        "noEmit": true // Only type-check - don't output .js files (Vite does the build)
     },
     "include": [
-        "src"
+        "src" // Files and folders to include in the project
     ],
-    "references": [
-        {
-            "path": "./tsconfig.node.json"
-        }
+    "exclude": [
+        "node_modules", // Folders to exclude from type-checking
+        "dist"
     ]
 }
