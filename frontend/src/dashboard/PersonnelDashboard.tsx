@@ -24,14 +24,14 @@ const PersonnelDashboard: React.FC = () => {
         const today = new Date();
         today.setHours(0, 0, 0, 0);
 
-        // Hent innlogget bruker-ID fra nameidentifier-claimen i JWT
+        // Gets logged-in user's ID from the nameidentifier claim in the JWT
         const userId = (user as any)?.[
           "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier"
         ];
 
         console.log("Current personnelId (from token):", userId);
 
-        // Filtrer alle avtaler der denne brukeren er personnel
+        // Filter all appointments where this user is personnel
         const forThisPersonnel = all.filter(
           (a) => !userId || a.personnelId === userId
         );
@@ -50,15 +50,15 @@ const PersonnelDashboard: React.FC = () => {
     load();
   }, [user]);
 
-  // === Statistikk-beregning ===
+  // === Statistics calculation ===
 
   const today = new Date();
   today.setHours(0, 0, 0, 0);
 
-  // Start/slutt på denne uken (mandag–søndag)
+  // Start/end of this week (Monday–Sunday)
   const startOfWeek = new Date(today);
-  const day = today.getDay(); // 0 = søndag, 1 = mandag, ...
-  const diffToMonday = (day + 6) % 7; // gjør mandag til start
+  const day = today.getDay(); // 0 = Sunday, 1 = Monday, ...
+  const diffToMonday = (day + 6) % 7; // make Monday the start
   startOfWeek.setDate(today.getDate() - diffToMonday);
   startOfWeek.setHours(0, 0, 0, 0);
 
@@ -72,7 +72,7 @@ const PersonnelDashboard: React.FC = () => {
     return d;
   };
 
-  // Antall unike pasienter (clientId eller clientName)
+  // Number of different patients (clientId or clientName)
   const uniquePatients = new Set(
     appointments.map((a) => a.clientId || a.clientName || "")
   );
@@ -81,13 +81,13 @@ const PersonnelDashboard: React.FC = () => {
   }
   const totalPatients = uniquePatients.size;
 
-  // Avtaler denne uken
+  // Appointments this week
   const appointmentsThisWeek = appointments.filter((a) => {
     const d = parseDate(a.date);
     return d >= startOfWeek && d <= endOfWeek;
   }).length;
 
-  // "Pending" = fremtidige/bookede avtaler
+  // "Pending" = future/booked appointments
   const pendingCount = appointments.filter((a) => {
     const d = parseDate(a.date);
     const isFutureOrToday = d >= today;
@@ -98,7 +98,7 @@ const PersonnelDashboard: React.FC = () => {
     (a) => a.status === "Cancelled"
   ).length;
 
-  // Upcoming appointments-liste (for tabellen)
+  // Upcoming appointments list (for table)
   const upcomingAppointments = appointments
     .filter((a) => {
       const d = parseDate(a.date);
@@ -117,7 +117,7 @@ const PersonnelDashboard: React.FC = () => {
 
   return (
     <div className="personnel-page">
-      {/* Welcome / toppseksjon */}
+      {/* Welcome / topsection */}
       <div className="mb-4">
         <h2 className="fw-bold mb-2">Welcome back, {displayName}!</h2>
         <p className="text-muted mb-0">
@@ -176,7 +176,7 @@ const PersonnelDashboard: React.FC = () => {
         </div>
       </div>
 
-      {/* Hovedinnhold: Upcoming appointments */}
+      {/* Main content: Upcoming appointments */}
       <div className="row g-4 mb-4">
         <div className="col-md-7">
           <div className="card border bg-light h-100">

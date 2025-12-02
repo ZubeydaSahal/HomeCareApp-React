@@ -20,7 +20,7 @@ const AppointmentCreatePage: React.FC = () => {
     const load = async () => {
       const avail = await fetchAvailabilities();
 
-      // ledige slots = ingen appointment tilknyttet
+      //  available slots = no appointment attached
       const free = avail.filter((a: any) => !a.appointmentId);
 
       setAvailabilityOptions(

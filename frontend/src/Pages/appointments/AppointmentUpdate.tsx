@@ -16,13 +16,13 @@ const AppointmentUpdatePage: React.FC = () => {
   const navigate = useNavigate();
 
   const [availabilityOptions, setAvailabilityOptions] = useState<Option[]>([]);
-  const [clientOptions] = useState<Option[]>([]); // kan fylles senere med ekte pasienter
+  const [clientOptions] = useState<Option[]>([]); // can be filled later with real patients
   const [initialValues, setInitialValues] =
     useState<AppointmentCreatePayload | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // TODO: koble mot faktisk rolle fra AuthContext senere
+  // TODO: connect to actual role from AuthContext later
   const isPersonnel = true;
 
   useEffect(() => {
@@ -35,15 +35,15 @@ const AppointmentUpdatePage: React.FC = () => {
 
         const id = Number(appointmentId);
 
-        // 1) Hent selve avtalen
+        // 1) Fetch the appointment itself
         const appt: Appointment = await getAppointment(id);
 
-        // 2) Hent alle availabilities
+        // 2) Fetch all availabilities
         const avail = await AvailabilityService.fetchAvailabilities();
 
-        // 3) Tillat:
-        //    - slots som ikke er booket
-        //    - den slot'en som denne avtalen allerede bruker
+        // 3) Allow:
+        //    - slots that are not booked
+        //    - the slot that this appointment already uses
         const options: Option[] = avail
           .filter((a: any) => !a.appointmentId || a.appointmentId === appt.id)
           .map((a: any) => ({
@@ -53,12 +53,12 @@ const AppointmentUpdatePage: React.FC = () => {
 
         setAvailabilityOptions(options);
 
-        // 4) Sett initialverdier til form (AppointmentCreatePayload)
+        // 4) Set initial values for form (AppointmentCreatePayload)
         setInitialValues({
           availabilityId: appt.availabilityId,
           clientId: appt.clientId ?? "",
           taskDescription: appt.taskDescription ?? "",
-          // backend sender typisk "HH:mm:ss" → kutt til "HH:mm"
+          // backend typically sends "HH:mm:ss" → cut to "HH:mm"
           startTime: appt.startTime.substring(0, 5),
           endTime: appt.endTime.substring(0, 5),
           status: appt.status,

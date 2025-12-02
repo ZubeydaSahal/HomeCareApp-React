@@ -9,12 +9,12 @@ const AppointmentList: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // state for sletting
+  // state for deleting
   const [showConfirm, setShowConfirm] = useState(false);
   const [selectedAppt, setSelectedAppt] = useState<Appointment | null>(null);
   const [deleting, setDeleting] = useState(false);
 
-  // Hent alle avtaler
+  // Fetch all appointments
   useEffect(() => {
     const load = async () => {
       try {
@@ -30,7 +30,7 @@ const AppointmentList: React.FC = () => {
     load();
   }, []);
 
-  // Når bruker klikker "Delete" i tabellen
+  // now user clicks "Delete" in the table
   const handleRequestDelete = (id: number) => {
     const appt = appointments.find((a) => a.id === id) || null;
     setSelectedAppt(appt);
@@ -84,7 +84,7 @@ const AppointmentList: React.FC = () => {
         />
       )}
 
-      {/* Bekreftelses-modal */}
+      {/* Confirmation modal */}
       <Modal show={showConfirm} onHide={handleConfirmClose} centered>
         <Modal.Header closeButton>
           <Modal.Title>Delete appointment</Modal.Title>

@@ -17,7 +17,7 @@ namespace HomeCareApp.DAL
             var userManager = services.GetRequiredService<UserManager<User>>();
             var roleManager = services.GetRequiredService<RoleManager<IdentityRole>>();
 
-            // Kjør async seed synkront ved oppstart
+            // Run async seed synchronously at startup
             SeedAsync(db, userManager, roleManager).GetAwaiter().GetResult();
         }
 
@@ -29,7 +29,7 @@ namespace HomeCareApp.DAL
             await db.Database.EnsureDeletedAsync();
             await db.Database.EnsureCreatedAsync();
 
-            // Opprett roller
+            // Create roles
             var roles = new[] { "Admin", "Personnel", "Patient" };
             foreach (var role in roles)
             {

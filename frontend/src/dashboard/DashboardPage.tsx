@@ -12,7 +12,7 @@ const DashboardPage: React.FC = () => {
     return <Navigate to="/login" replace />;
   }
 
-  const role = user.role; // nå alltid "Admin" | "Personnel" | "Patient"
+  const role = user.role; // always "Admin" | "Personnel" | "Patient"
 
   if (role === "Patient") {
     return <PatientDashboard />;

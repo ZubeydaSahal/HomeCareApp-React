@@ -24,7 +24,7 @@ public class AdminController : ControllerBase
 
     // -------------------------------------------------
     // GET: api/admin/patients
-    // -> Admin ser alle pasienter
+    // -> Admin sees all patients
     // -------------------------------------------------
     [HttpGet("patients")]
     public async Task<ActionResult<IEnumerable<AdminDto>>> GetPatients()
@@ -46,7 +46,7 @@ public class AdminController : ControllerBase
 
     // -------------------------------------------------
     // GET: api/admin/personnel
-    // -> Admin ser alle pleiere
+    // -> Admin sees all personnel
     // -------------------------------------------------
     [HttpGet("personnel")]
     public async Task<ActionResult<IEnumerable<AdminDto>>> GetPersonnel()

@@ -47,9 +47,9 @@ public class AppointmentController : ControllerBase
 
     // ----------------------------------------------------
     // GET: api/appointments/list
-    // - Patient: kun egne avtaler
-    // - Personnel: alle egne (via Availability.PersonnelId)
-    // - Admin: alle
+    // - Patient: sees own appointments
+    // - Personnel: all appointments where they are assigned
+    // - Admin: all appointments
     // ----------------------------------------------------
     [HttpGet("list")]
     public async Task<ActionResult<IEnumerable<AppointmentDto>>> List()
@@ -86,7 +86,7 @@ public class AppointmentController : ControllerBase
             PersonnelName = a.Availability?.Personnel?.FullName,
             Date = a.Availability?.Date ?? default,
 
-            // Entiteten har TimeSpan, DTO har TimeOnly
+            // The entity has TimeSpan, DTO has TimeOnly
             StartTime = TimeOnly.FromTimeSpan(a.StartTime),
             EndTime = TimeOnly.FromTimeSpan(a.EndTime),
 
@@ -111,7 +111,7 @@ public class AppointmentController : ControllerBase
         var isPersonnel = User.IsInRole("Personnel");
         var isAdmin = User.IsInRole("Admin");
 
-        // Admin kan alltid
+        // Admin can always
         if (!isAdmin && !string.IsNullOrEmpty(userId))
         {
             if (isPatient && appt.ClientId != userId)
@@ -150,8 +150,8 @@ public class AppointmentController : ControllerBase
 
     // ----------------------------------------------------
     // POST: api/appointments/create
-    // - Patient: kan bare booke for seg selv
-    // - Personnel/Admin: må sende ClientId i DTO
+    // - Patient: can only book for themselves
+    // - Personnel/Admin: must provide ClientId in DTO
     // ----------------------------------------------------
     [HttpPost("create")]
     public async Task<ActionResult> Create([FromBody] AppointmentCreateDto dto)
@@ -219,8 +219,8 @@ public class AppointmentController : ControllerBase
 
     // ----------------------------------------------------
     // PUT: api/appointments/update/5
-    // - Patient: kan bare endre egne, og vi låser Status til "Booked"
-    // - Personnel/Admin: kan endre alt
+    // - Patient: can only update their own, and we lock Status to "Booked"
+    // - Personnel/Admin: can update everything
     // ----------------------------------------------------
     [HttpPut("update/{id}")]
     public async Task<ActionResult> Update(int id, [FromBody] AppointmentCreateDto dto)
@@ -250,7 +250,7 @@ public class AppointmentController : ControllerBase
             if (string.IsNullOrEmpty(userId)) return Unauthorized();
             if (appt.ClientId != userId) return Forbid();
 
-            // pasient kan ikke sette Completed/Cancelled selv
+            // Patient cannot set Completed/Cancelled themselves
             appt.Status = "Booked";
         }
         else
@@ -271,8 +271,8 @@ public class AppointmentController : ControllerBase
 
     // ----------------------------------------------------
     // DELETE: api/appointments/delete/5
-    // - Patient: bare egne
-    // - Personnel/Admin: alt
+    // - Patient: can only delete their own
+    // - Personnel/Admin: can delete all
     // ----------------------------------------------------
     [HttpDelete("delete/{id}")]
     public async Task<ActionResult> Delete(int id)

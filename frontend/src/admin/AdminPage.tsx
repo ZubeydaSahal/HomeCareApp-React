@@ -9,7 +9,7 @@ const AdminPage: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // ❗ Rolle-sjekk: kun Admin
+  // ❗ Role-check: only Admin
   if (!user || user.role !== "Admin") {
     return (
       <div className="container mt-4">

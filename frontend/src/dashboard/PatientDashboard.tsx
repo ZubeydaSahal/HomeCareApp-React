@@ -24,7 +24,7 @@ const PatientDashboard: React.FC = () => {
         const today = new Date();
         today.setHours(0, 0, 0, 0);
 
-        // Hent brukerens ID fra JWT (nameidentifier-claimen)
+        // Gets user's ID from JWT (nameidentifier claim)
         const userId = (user as any)?.[
           "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier"
         ];
@@ -33,7 +33,7 @@ const PatientDashboard: React.FC = () => {
 
         const upcoming = all
           .filter((a) => {
-            // Dato-filter
+            // Date filter
             const d = new Date(a.date);
             d.setHours(0, 0, 0, 0);
             const isFutureOrToday = d >= today;
@@ -77,7 +77,7 @@ const PatientDashboard: React.FC = () => {
 
   return (
     <div>
-      {/* Welcome / topptekst */}
+      {/* Welcome / top text */}
       <div className="mb-5">
         <h2 className="fw-bold mb-3">Welcome back, {displayName}!</h2>
         {todayCount > 0 ? (
@@ -92,7 +92,7 @@ const PatientDashboard: React.FC = () => {
       </div>
 
       <div className="row g-4">
-        {/* Venstre kolonne – actions + upcoming appointments */}
+        {/* Left column – actions + upcoming appointments */}
         <div className="col-lg-8">
           {/* Action cards */}
           <div className="row g-3 mb-4">
@@ -164,7 +164,7 @@ const PatientDashboard: React.FC = () => {
                     >
                       <div>
                         <h5 className="mb-2 fw-semibold text-dark lh-base">
-                          {/* tilpass felt */}
+                          {/* customize field */}
                           {a.taskDescription ?? "Home care visit"}
                         </h5>
                         <p className="mb-0 text-muted lh-lg">
@@ -196,7 +196,7 @@ const PatientDashboard: React.FC = () => {
           </div>
         </div>
 
-        {/* Høyre kolonne – CareTeam (fortsatt statisk/dummy) */}
+        {/* Right column – CareTeam (still static/dummy) */}
         <div className="col-lg-4">
           <div
             className="card border-1 border-dark bg-light h-100"

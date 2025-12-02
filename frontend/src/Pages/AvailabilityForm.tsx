@@ -24,7 +24,7 @@ const AvailabilityForm: React.FC<AvailabilityFormProps> = ({
   const navigate = useNavigate();
 
   const onCancel = () => {
-    navigate(-1); // Tilbake én side i historikken
+    navigate(-1); // Back one page in history
   };
 
   const handleSubmit = (event: React.FormEvent) => {
@@ -67,7 +67,7 @@ const AvailabilityForm: React.FC<AvailabilityFormProps> = ({
           value={startTime}
           onChange={(e) => setStartTime(e.target.value)}
           required
-        />
+        />  
       </Form.Group>
 
       <Form.Group controlId="formAvailabilityEndTime" className="mb-3">

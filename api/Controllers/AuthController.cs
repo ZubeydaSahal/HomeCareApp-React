@@ -40,10 +40,10 @@ namespace HomeCareApp.Controllers
             if (!ModelState.IsValid)
             return BadRequest(ModelState);
             
-            // Opprett Identity-bruker
+            // Create new user
             var user = new AppUser
             {
-                UserName = registerDto.Email,     // vi bruker e-post som brukernavn
+                UserName = registerDto.Email,     // use email as username
                 Email = registerDto.Email,
                 FullName = registerDto.FullName
                 };
@@ -54,7 +54,7 @@ namespace HomeCareApp.Controllers
                     return BadRequest(result.Errors);
                     }
 
-                // Bestem hvilken rolle vi faktisk tillater
+                // Determine which role we actually allow
                 var requestedRole = registerDto.Role?.Trim();
                 string roleToAssign = "Patient";
 
@@ -77,7 +77,7 @@ namespace HomeCareApp.Controllers
                 if (!ModelState.IsValid)
                     return BadRequest(ModelState);
 
-                // Vi logger inn med e-post
+                // We log in with email
                 var user = await _userManager.FindByEmailAsync(loginDto.Email);
 
                 if (user != null && await _userManager.CheckPasswordAsync(user, loginDto.Password))
@@ -116,14 +116,14 @@ namespace HomeCareApp.Controllers
 
                 var claims = new List<Claim>
                 {
-                    // Bruk e-post som "sub"
+                    // Use email as "sub"
                     new Claim(JwtRegisteredClaimNames.Sub, user.Email ?? string.Empty),
                     new Claim(JwtRegisteredClaimNames.Email, user.Email ?? string.Empty),
 
-                    // Identity-bruker-ID
+                    // Identity user ID
                     new Claim(ClaimTypes.NameIdentifier, user.Id),
 
-                    // Fullt navn (ClaimTypes.Name → blir "name"-claim i JWT)
+                    // Full name (ClaimTypes.Name → becomes "name" claim in JWT)
                     new Claim(ClaimTypes.Name, user.FullName ?? string.Empty),
 
                     new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
@@ -134,7 +134,7 @@ namespace HomeCareApp.Controllers
                     )
                 };
 
-                // Roller
+                // Roles
                 var roles = await _userManager.GetRolesAsync(user);
                 foreach (var role in roles)
                 {
