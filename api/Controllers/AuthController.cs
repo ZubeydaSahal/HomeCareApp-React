@@ -13,7 +13,7 @@ namespace HomeCareApp.Controllers
     [ApiController]
     [Route("api/[controller]")]
     [Authorize]
-    public class AuthController : ControllerBase
+    public class AuthController : ControllerBase //ControllerBase is sufficient for Api controllers
     {
         private readonly UserManager<AppUser> _userManager;
         private readonly SignInManager<AppUser> _signInManager;
@@ -104,15 +104,16 @@ namespace HomeCareApp.Controllers
 
             private async Task<string> GenerateJwtToken(AppUser user)
             {
-                var jwtKey = _configuration["Jwt:Key"];
-                if (string.IsNullOrEmpty(jwtKey))
+                var jwtKey = _configuration["Jwt:Key"]; //The secret key used for signiture
+                if (string.IsNullOrEmpty(jwtKey)) 
                 {
                     _logger.LogError("[AuthController] JWT key is missing from configuration.");
                     throw new InvalidOperationException("JWT key is missing from configuration.");
                 }
 
+                //Reading the key from the configuration
                 var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey));
-                var credentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256);
+                var credentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256); // using  the algorithm HMAC SHA256 
 
                 var claims = new List<Claim>
                 {

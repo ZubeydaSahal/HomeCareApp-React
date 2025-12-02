@@ -9,7 +9,7 @@ namespace HomeCareApp.DAL
         //entity Framework Core db context for HomeCareApp
         public HomeCareDbContext(DbContextOptions<HomeCareDbContext> options) : base(options)
         {
-            Database.EnsureCreated();
+            //Database.EnsureCreated();
 
         }
 

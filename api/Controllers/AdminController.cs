@@ -9,7 +9,7 @@ namespace HomeCareApp.Controllers;
 [ApiController]
 [Route("api/admin")]
 [Authorize(Roles = "Admin")]
-public class AdminController : ControllerBase
+public class AdminController : ControllerBase  // inherits from ControllerBase for API controllers
 {
     private readonly UserManager<User> _userManager;
     private readonly ILogger<AdminController> _logger;
