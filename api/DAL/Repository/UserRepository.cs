@@ -1,40 +1,136 @@
 using Microsoft.AspNetCore.Identity;
 using HomeCareApp.Models;
 
-namespace HomeCareApp.DAL;
-
-public class UserRepository : IUserRepository
+namespace HomeCareApp.DAL
 {
-    private readonly UserManager<Models.User> _userManager;
-    private readonly SignInManager<Models.User> _signInManager;
-
-    public UserRepository(UserManager<Models.User> userManager, SignInManager<Models.User> signInManager)
+    public class UserRepository : IUserRepository
     {
-        _userManager = userManager;
-        _signInManager = signInManager;
-    }
+        private readonly UserManager<User> _userManager;
+        private readonly SignInManager<User> _signInManager;
+        private readonly ILogger<UserRepository> _logger; // logger
 
-    public Task<Models.User?> FindByEmailAsync(string email)
-        => _userManager.FindByEmailAsync(email);
+        public UserRepository(
+            UserManager<User> userManager,
+            SignInManager<User> signInManager,
+            ILogger<UserRepository> logger)
+        {
+            _userManager = userManager;
+            _signInManager = signInManager;
+            _logger = logger; // injected logger
+        }
 
-    public Task<SignInResult> PasswordSignInAsync(Models.User user, string password)
-        => _signInManager.PasswordSignInAsync(user, password, isPersistent: false, lockoutOnFailure: false);
+        public async Task<User?> FindByEmailAsync(string email)
+        {
+            try
+            {
+                _logger.LogInformation("Finding user by email {Email}", email); // info
+                return await _userManager.FindByEmailAsync(email);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error finding user by email {Email}", email); // error
+                throw;
+            }
+        }
 
-    public Task SignOutAsync()
-        => _signInManager.SignOutAsync();
+        public async Task<SignInResult> PasswordSignInAsync(User user, string password)
+        {
+            try
+            {
+                _logger.LogInformation("Password sign-in attempt for {Email}", user.Email); // info
+                return await _signInManager.PasswordSignInAsync(
+                    user, password, isPersistent: false, lockoutOnFailure: false);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error during password sign-in for {Email}", user.Email); // error
+                throw;
+            }
+        }
 
-    public Task<IdentityResult> CreateAsync(Models.User user, string password)
-        => _userManager.CreateAsync(user, password);
+        public async Task SignOutAsync()
+        {
+            try
+            {
+                _logger.LogInformation("Signing out current user"); // info
+                await _signInManager.SignOutAsync();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error during sign-out"); // error
+                throw;
+            }
+        }
 
-    public Task<IdentityResult> AddToRoleAsync(Models.User user, string role)
-        => _userManager.AddToRoleAsync(user, role);
+        public async Task<IdentityResult> CreateAsync(User user, string password)
+        {
+            try
+            {
+                _logger.LogInformation("Creating new user {Email}", user.Email); // info
+                var result = await _userManager.CreateAsync(user, password);
 
-    public async Task<Models.User?> GetUserAsync(System.Security.Claims.ClaimsPrincipal user)
-        => await _userManager.GetUserAsync(user);
+                if (!result.Succeeded)
+                    _logger.LogWarning("User creation failed for {Email}", user.Email); // warning
 
-    public async Task<List<Models.User>> GetUsersInRoleAsync(string role)
-    {
-        var users = await _userManager.GetUsersInRoleAsync(role);
-        return users.ToList();
+                return result;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error creating user {Email}", user.Email); // error
+                throw;
+            }
+        }
+
+        public async Task<IdentityResult> AddToRoleAsync(User user, string role)
+        {
+            try
+            {
+                _logger.LogInformation("Adding user {Email} to role {Role}", user.Email, role); // info
+                var result = await _userManager.AddToRoleAsync(user, role);
+
+                if (!result.Succeeded)
+                    _logger.LogWarning("Failed to add user {Email} to role {Role}", user.Email, role); // warning
+
+                return result;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error adding user {Email} to role {Role}", user.Email, role); // error
+                throw;
+            }
+        }
+
+        public async Task<User?> GetUserAsync(System.Security.Claims.ClaimsPrincipal user)
+        {
+            try
+            {
+                _logger.LogInformation("Fetching authenticated user from ClaimsPrincipal"); // info
+                return await _userManager.GetUserAsync(user);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error retrieving user from ClaimsPrincipal"); // error
+                throw;
+            }
+        }
+
+        public async Task<List<User>> GetUsersInRoleAsync(string role)
+        {
+            try
+            {
+                _logger.LogInformation("Fetching users in role {Role}", role); // info
+
+                var users = await _userManager.GetUsersInRoleAsync(role);
+
+                _logger.LogInformation("Loaded {Count} users in role {Role}", users.Count, role); // info
+
+                return users.ToList();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error fetching users in role {Role}", role); // error
+                throw;
+            }
+        }
     }
 }
