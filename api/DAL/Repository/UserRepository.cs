@@ -2,7 +2,8 @@ using Microsoft.AspNetCore.Identity;
 using HomeCareApp.Models;
 
 namespace HomeCareApp.DAL
-{
+{ 
+    //repository for managing user authentication operations
     public class UserRepository : IUserRepository
     {
         private readonly UserManager<User> _userManager;
@@ -18,7 +19,7 @@ namespace HomeCareApp.DAL
             _signInManager = signInManager;
             _logger = logger; // injected logger
         }
-
+        //filters user by email
         public async Task<User?> FindByEmailAsync(string email)
         {
             try
@@ -32,7 +33,7 @@ namespace HomeCareApp.DAL
                 throw;
             }
         }
-
+        //handles sign in for user
         public async Task<SignInResult> PasswordSignInAsync(User user, string password)
         {
             try
@@ -47,7 +48,7 @@ namespace HomeCareApp.DAL
                 throw;
             }
         }
-
+        //Sign out the current user
         public async Task SignOutAsync()
         {
             try
@@ -79,7 +80,8 @@ namespace HomeCareApp.DAL
                 _logger.LogError(ex, "Error creating user {Email}", user.Email); // error
                 throw;
             }
-        }
+        } 
+        //Gives a role to user
 
         public async Task<IdentityResult> AddToRoleAsync(User user, string role)
         {

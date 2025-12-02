@@ -14,6 +14,7 @@ namespace HomeCareApp.DAL
             _logger = logger; // injected logger
         }
 
+        //Gets all appointments
         public async Task<List<Appointment>> GetAllAsync()
         {
             try
@@ -64,6 +65,7 @@ namespace HomeCareApp.DAL
             }
         }
 
+        //gets appointments by the client Id
         public async Task<List<Appointment>> GetByClientIdAsync(string clientId)
         {
             try
@@ -91,7 +93,7 @@ namespace HomeCareApp.DAL
                 throw;
             }
         }
-
+        //creates new appointment 
         public async Task CreateAsync(Appointment appointment)
         {
             try
@@ -110,6 +112,7 @@ namespace HomeCareApp.DAL
             }
         }
 
+        //updates an appointment
         public async Task UpdateAsync(Appointment appointment)
         {
             try
@@ -127,7 +130,7 @@ namespace HomeCareApp.DAL
                 throw;
             }
         }
-
+        //deletes appointment by the id
         public async Task DeleteAsync(int id)
         {
             try

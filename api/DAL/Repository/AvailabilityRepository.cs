@@ -3,6 +3,8 @@ using Microsoft.EntityFrameworkCore;
 
 namespace HomeCareApp.DAL
 {
+
+    //Repository for managing availability
     public class AvailabilityRepository : IAvailabilityRepository
     {
         private readonly HomeCareDbContext _context;
@@ -13,7 +15,8 @@ namespace HomeCareApp.DAL
             _context = context;
             _logger = logger; // injected logger
         }
-
+        
+        //Gets all availability 
         public async Task<List<Availability>> GetAllAsync()
         {
             try
@@ -35,7 +38,7 @@ namespace HomeCareApp.DAL
                 throw;
             }
         }
-
+        //Get a single availability by the id
         public async Task<Availability?> GetByIdAsync(int id)
         {
             try
@@ -59,6 +62,7 @@ namespace HomeCareApp.DAL
             }
         }
 
+        // Adds a new availability
         public async Task AddAsync(Availability availability)
         {
             try
@@ -77,6 +81,7 @@ namespace HomeCareApp.DAL
             }
         }
 
+        //Update availability
         public async Task UpdateAsync(Availability availability)
         {
             try
@@ -94,7 +99,8 @@ namespace HomeCareApp.DAL
                 throw;
             }
         }
-
+        
+        // Delete availability by id
         public async Task DeleteAsync(int id)
         {
             try

@@ -4,6 +4,7 @@ namespace HomeCareApp.DAL;
 
 public interface IUserRepository
 {
+    //Repository interface for managing users
     Task<Models.User?> FindByEmailAsync(string email);
     Task<SignInResult> PasswordSignInAsync(Models.User user, string password);
     Task SignOutAsync();
