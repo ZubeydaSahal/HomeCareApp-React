@@ -8,7 +8,7 @@ const AdminPatientsPage: React.FC = () => {
   const [patients, setPatients] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-
+  //Only admin can access this page
   if (!user || user.role !== "Admin") {
     return (
       <div className="container mt-4">
@@ -36,7 +36,7 @@ const AdminPatientsPage: React.FC = () => {
   return (
     <div className="container mt-4">
       <h2 className="fw-bold mb-4">All Patients</h2>
-
+    
       {error && <Alert variant="danger">{error}</Alert>}
 
       {loading ? (

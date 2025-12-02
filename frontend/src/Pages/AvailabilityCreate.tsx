@@ -6,7 +6,7 @@ import * as AvailabiliyService from "./AvailabilityService";
 
 const AvailabilityCreate: React.FC = () => {
   const navigate = useNavigate();
-
+//called when a new availability is created
   const handleAvailabilityCreated = async (availability: Availability) => {
     try {
       await AvailabiliyService.createAvailability(availability);

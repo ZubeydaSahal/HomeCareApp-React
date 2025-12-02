@@ -22,15 +22,15 @@ const AvailabilityForm: React.FC<AvailabilityFormProps> = ({
   const [error, setError] = useState<string | null>(null);
 
   const navigate = useNavigate();
-
+//goes back to previous page
   const onCancel = () => {
-    navigate(-1); // Back one page in history
+    navigate(-1); 
   };
 
   const handleSubmit = (event: React.FormEvent) => {
     event.preventDefault();
     setError(null);
-
+    //validating 
     if (!date || !startTime || !endTime) {
       setError("Date, start time og end time er påkrevd.");
       return;
