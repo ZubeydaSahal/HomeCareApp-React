@@ -1,11 +1,11 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Form, Button } from "react-bootstrap";
-import { Availability } from "../types/Availability";
+import { Availability } from "../../types/Availability";
 
 interface AvailabilityFormProps {
   onAvailabilityChanged: (newAvailability: Availability) => void;
-  availabilityId?: number; 
+  availabilityId?: number;
   isUpdate?: boolean;
   initialData?: Availability;
 }
@@ -14,31 +14,34 @@ const AvailabilityForm: React.FC<AvailabilityFormProps> = ({
   onAvailabilityChanged,
   availabilityId,
   isUpdate = false,
-  initialData}) => {
+  initialData,
+}) => {
   const [date, setDate] = useState<string>(initialData?.date || "");
-  const [startTime, setStartTime] = useState<string>(initialData?.startTime || "");
+  const [startTime, setStartTime] = useState<string>(
+    initialData?.startTime || ""
+  );
   const [endTime, setEndTime] = useState<string>(initialData?.endTime || "");
   const [notes, setNotes] = useState<string>(initialData?.notes || "");
   const [error, setError] = useState<string | null>(null);
 
   const navigate = useNavigate();
-//goes back to previous page
+  //goes back to previous page
   const onCancel = () => {
-    navigate(-1); 
+    navigate(-1);
   };
 
   const handleSubmit = (event: React.FormEvent) => {
     event.preventDefault();
     setError(null);
-    //validating 
+    //validating
     if (!date || !startTime || !endTime) {
       setError("Date, start time og end time er påkrevd.");
       return;
     }
 
     const newAvailability: Availability = {
-      id: availabilityId ?? 0,         //cant ignore the backend needs it
-      personnelId: "",                
+      id: availabilityId ?? 0, //cant ignore the backend needs it
+      personnelId: "",
       date,
       startTime,
       endTime,
@@ -67,7 +70,7 @@ const AvailabilityForm: React.FC<AvailabilityFormProps> = ({
           value={startTime}
           onChange={(e) => setStartTime(e.target.value)}
           required
-        />  
+        />
       </Form.Group>
 
       <Form.Group controlId="formAvailabilityEndTime" className="mb-3">
@@ -94,7 +97,8 @@ const AvailabilityForm: React.FC<AvailabilityFormProps> = ({
       {error && <p style={{ color: "red" }}>{error}</p>}
 
       <Button variant="primary" type="submit">
-         create availability </Button>
+        create availability{" "}
+      </Button>
       <Button variant="secondary" onClick={onCancel} className="ms-2">
         Cancel
       </Button>

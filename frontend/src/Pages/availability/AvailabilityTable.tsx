@@ -1,7 +1,7 @@
 import React from "react";
 import { Table, Button } from "react-bootstrap";
 import { Link } from "react-router-dom";
-import { Availability } from "../types/Availability";
+import { Availability } from "../../types/Availability";
 
 interface Props {
   availabilities: Availability[];

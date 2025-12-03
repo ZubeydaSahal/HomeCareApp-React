@@ -4,6 +4,8 @@ import { useNavigate, Link } from "react-router-dom";
 import * as authService from "./AuthService";
 import "../css/forms.css";
 
+
+
 const RegisterPage: React.FC = () => {
   const [formData, setFormData] = useState({
     fullName: "",

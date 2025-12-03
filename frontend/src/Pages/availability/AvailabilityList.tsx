@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Button, Form, Alert, Spinner } from "react-bootstrap";
 import { Link } from "react-router-dom";
-import { Availability } from "../types/Availability";
+import { Availability } from "../../types/Availability";
 import * as AvailabilityService from "./AvailabilityService";
 import AvailabilityTable from "./AvailabilityTable";
 

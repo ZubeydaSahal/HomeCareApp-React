@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import AvailabilityForm from "./AvailabilityForm";
-import { Availability } from "../types/Availability";
+import { Availability } from "../../types/Availability";
 import { fetchAvailabilities, updateAvailability } from "./AvailabilityService";
 
 const AvailabilityUpdate: React.FC = () => {

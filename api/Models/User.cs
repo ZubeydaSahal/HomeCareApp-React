@@ -6,7 +6,7 @@ namespace HomeCareApp.Models
 
     public class User : IdentityUser
     {
-        [RegularExpression(@"^[\p{L}.\- ]+$", ErrorMessage = "The name must contain only letters, spaces, periods, or hyphens.")]
+        [RegularExpression(@"[a-zA-ZæøåÆØÅ \s\-]{2,50}$", ErrorMessage = "The name must contain only letters, spaces, periods, or hyphens.")]
         [Display(Name = "Full Name")]
         public string FullName { get; set; } = string.Empty;
 

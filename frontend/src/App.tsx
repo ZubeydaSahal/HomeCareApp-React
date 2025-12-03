@@ -10,9 +10,9 @@ import {
 import HomePage from "./home/HomePage";
 import NavMenu from "./shared/NavMenu";
 
-import AvailabilityCreate from "./Pages/AvailabilityCreate";
-import AvailbilityUpdate from "./Pages/AvailabilityUpdate";
-import AvailabilityListPage from "./Pages/AvailabilityList";
+import AvailabilityCreate from "./Pages/availability/AvailabilityCreate";
+import AvailbilityUpdate from "./Pages/availability/AvailabilityUpdate";
+import AvailabilityListPage from "./Pages/availability/AvailabilityList";
 
 import AppointmentListPage from "./Pages/appointments/AppointmentList";
 import AppointmentCreatePage from "./Pages/appointments/AppointmentCreatePage";
@@ -40,48 +40,48 @@ const AppContent: React.FC = () => {
       {!hideNavbar && <NavMenu />}
       <div className="app-content">
         <Routes>
-            {/* Offentlige sider */}
-            <Route path="/" element={<HomePage />} />
-            <Route path="/login" element={<LoginPage />} />
-            <Route path="/register" element={<RegisterPage />} />
+          {/* Offentlige sider */}
+          <Route path="/" element={<HomePage />} />
+          <Route path="/login" element={<LoginPage />} />
+          <Route path="/register" element={<RegisterPage />} />
 
-            {/* Alt inni ProtectedRoute krever innlogging */}
-            <Route element={<ProtectedRoute />}>
-              {/* Dashboard for alle innloggede (velger selv Patient/Personnel/Admin) */}
-              <Route path="/dashboard" element={<DashboardPage />} />
+          {/* Alt inni ProtectedRoute krever innlogging */}
+          <Route element={<ProtectedRoute />}>
+            {/* Dashboard for alle innloggede (velger selv Patient/Personnel/Admin) */}
+            <Route path="/dashboard" element={<DashboardPage />} />
 
-              {/* Availability – kun synlig i meny for Personnel/Admin */}
-              <Route path="/availability" element={<AvailabilityListPage />} />
-              <Route
-                path="/availability/create"
-                element={<AvailabilityCreate />}
-              />
-              <Route
-                path="/availability/edit/:availabilityId"
-                element={<AvailbilityUpdate />}
-              />
+            {/* Availability – kun synlig i meny for Personnel/Admin */}
+            <Route path="/availability" element={<AvailabilityListPage />} />
+            <Route
+              path="/availability/create"
+              element={<AvailabilityCreate />}
+            />
+            <Route
+              path="/availability/edit/:availabilityId"
+              element={<AvailbilityUpdate />}
+            />
 
-              {/* Appointments – for innloggede brukere */}
-              <Route path="/appointments" element={<AppointmentListPage />} />
-              <Route
-                path="/appointments/create"
-                element={<AppointmentCreatePage />}
-              />
-              <Route
-                path="/appointments/edit/:appointmentId"
-                element={<AppointmentUpdatePage />}
-              />
+            {/* Appointments – for innloggede brukere */}
+            <Route path="/appointments" element={<AppointmentListPage />} />
+            <Route
+              path="/appointments/create"
+              element={<AppointmentCreatePage />}
+            />
+            <Route
+              path="/appointments/edit/:appointmentId"
+              element={<AppointmentUpdatePage />}
+            />
 
-              {/* Admin-sider – komponentene sjekker selv at user.role === "Admin" */}
-              <Route path="/admin" element={<AdminPatientsPage />} />
-              <Route path="/admin/personnel" element={<AdminPersonnelPage />} />
-            </Route>
+            {/* Admin-sider – komponentene sjekker selv at user.role === "Admin" */}
+            <Route path="/admin" element={<AdminPatientsPage />} />
+            <Route path="/admin/personnel" element={<AdminPersonnelPage />} />
+          </Route>
 
-            {/* Fallback */}
-            <Route path="*" element={<Navigate to="/" replace />} />
-          </Routes>
-        </div>
-      </>
+          {/* Fallback */}
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
+      </div>
+    </>
   );
 };
 
