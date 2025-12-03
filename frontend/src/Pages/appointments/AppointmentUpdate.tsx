@@ -4,7 +4,7 @@ import AppointmentForm from "./AppointmentForm";
 import { getAppointment, updateAppointment } from "./AppointmentService";
 import { Appointment, AppointmentCreatePayload } from "../../types/Appointment";
 
-import * as AvailabilityService from "../AvailabilityService";
+import * as AvailabilityService from "../availability/AvailabilityService";
 
 interface Option {
   value: string | number;

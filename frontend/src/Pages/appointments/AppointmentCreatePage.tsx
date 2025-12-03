@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import AppointmentForm from "./AppointmentForm";
 import { createAppointment } from "./AppointmentService";
 import { AppointmentCreatePayload } from "../../types/Appointment";
-import { fetchAvailabilities } from "../AvailabilityService";
+import { fetchAvailabilities } from "../availability/AvailabilityService";
 
 interface Option {
   value: number;
