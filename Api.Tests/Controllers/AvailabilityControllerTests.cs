@@ -126,7 +126,7 @@ public class AvailabilityControllerTests
             Notes = "Note"
         };
 
-        // Act: attempt to create availability for a nonexistent user.
+        // Act: attempt to create availability for a non-existent user.
         var result = await controller.Create(dto);
 
         // Assert: the controller should reject the request and return a 400 BadRequest response.
@@ -334,18 +334,18 @@ public class AvailabilityControllerTests
         // Simulate a user with ID "foreign-1" and role "Personnel" (not an admin). This user is not the owner.
         var controller = CreateControllerWithUser(otherId, "Personnel");
 
-        // Create an availability entry owned by someone else.
+        // Create an availability entry owned by "owner-1".
         var existing = new Availability
         {
             Id = 8,
             PersonnelId = ownerId
         };
         
-        // Mock repository: when fetching ID 8, return the entry owned by ownerId.
+        // Mock repository: when fetching ID 8, return the entry.
         _availabilityRepoMock.Setup(r => r.GetByIdAsync(8))
             .ReturnsAsync(existing);
 
-        // Act: Attempt to delete the record as "other-1" (not the owner).
+        // Act: Attempt to delete the record as "foreign-1" (not the owner).
         var result = await controller.Delete(8);
 
         // Assert: verify expected outcomes. Ensure the controller responded with ForbidResult (HTTP 403).
