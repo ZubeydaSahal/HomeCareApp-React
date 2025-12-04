@@ -77,15 +77,12 @@ const AvailabilityTable: React.FC<Props> = ({
                   <td className="py-3 px-4 text-dark text-end">
                     {!isBooked ? (
                       <>
-                        <Button
-                          as={Link}
+                        <Link
                           to={`/availability/edit/${a.id}`}
-                          variant="outline-secondary"
-                          size="sm"
-                          className="me-2"
+                          className="btn btn-outline-secondary btn-sm me-2"
                         >
                           Edit
-                        </Button>
+                        </Link>
                         <Button
                           variant="outline-danger"
                           size="sm"

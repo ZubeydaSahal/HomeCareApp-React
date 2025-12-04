@@ -16,8 +16,9 @@ const AvailabilityList: React.FC = () => {
     setError(null);
 
     try {
-      const data = await AvailabilityService.fetchAvailabilities();
+      const data = await AvailabilityService.fetchAvailabilities() as Availability[];
       setAvailabilities(data);
+      console.log("Fetched availabilities:", data);
     } catch (error: unknown) {
       if (error instanceof Error) {
         console.error("Error fetching availabilities:", error.message);
@@ -66,9 +67,9 @@ const AvailabilityList: React.FC = () => {
 
       <div className="mb-4 d-flex justify-content-between align-items-center">
         <h1 className="h4 mb-0">My Calendar</h1>
-        <Button as={Link} to="/availability/create" variant="primary">
+        <Link to="/availability/create" className="btn btn-primary">
           + Add Availability Slot
-        </Button>
+        </Link>
       </div>
 
       <Form.Group className="mb-3">

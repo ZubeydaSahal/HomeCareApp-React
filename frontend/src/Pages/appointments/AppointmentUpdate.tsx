@@ -3,6 +3,8 @@ import { useNavigate, useParams } from "react-router-dom";
 import AppointmentForm from "./AppointmentForm";
 import { getAppointment, updateAppointment } from "./AppointmentService";
 import { Appointment, AppointmentCreatePayload } from "../../types/Appointment";
+import { Availability } from "../../types/Availability";
+
 
 import * as AvailabilityService from "../availability/AvailabilityService";
 
@@ -39,7 +41,7 @@ const AppointmentUpdatePage: React.FC = () => {
         const appt: Appointment = await getAppointment(id);
 
         // 2) Fetch all availabilities
-        const avail = await AvailabilityService.fetchAvailabilities();
+        const avail = await AvailabilityService.fetchAvailabilities() as Availability[];
 
         // 3) Allow:
         //    - slots that are not booked

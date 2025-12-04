@@ -4,6 +4,8 @@ import AppointmentForm from "./AppointmentForm";
 import { createAppointment } from "./AppointmentService";
 import { AppointmentCreatePayload } from "../../types/Appointment";
 import { fetchAvailabilities } from "../availability/AvailabilityService";
+import { Availability } from "../../types/Availability";
+
 
 interface Option {
   value: number;
@@ -18,10 +20,10 @@ const AppointmentCreatePage: React.FC = () => {
 
   useEffect(() => {
     const load = async () => {
-      const avail = await fetchAvailabilities();
+      const avail = await fetchAvailabilities() as Availability[];
 
       //  available slots = no appointment attached
-      const free = avail.filter((a: any) => !a.appointmentId);
+      const free = avail.filter((a: any) => !a.appointmentId) ;
 
       setAvailabilityOptions(
         free.map((a: any) => ({
