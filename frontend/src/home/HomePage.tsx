@@ -1,8 +1,24 @@
 import React from "react";
 import { Link } from "react-router-dom";
 import "../css/public.css";
+import { useAuth } from "../auth/AuthContext";
 
 const HomePage: React.FC = () => {
+  const { user } = useAuth();
+  const isAuthenticated = !!user;
+  const isAdmin = user?.role === "Admin";
+  const isPersonnel = user?.role === "Personnel";
+  const isPatient = user?.role === "Patient";
+
+  // Hvor innloggede brukere sendes (dashboard per rolle)
+  const appHomeLink = isAdmin
+    ? "/admin/dashboard"
+    : isPersonnel
+    ? "/personnel/dashboard"
+    : isPatient
+    ? "/patient/dashboard"
+    : "/"; 
+
   return (
     <section className="hero text-center">
       <div className="hero-content">
@@ -14,9 +30,13 @@ const HomePage: React.FC = () => {
         {/* Services features */}
         <div className="feature-grid">
           <div className="feature-card">
-            <div className="feature-icon secondary"><i className="bi bi-calendar-check"></i></div>
+            <div className="feature-icon secondary">
+              <i className="bi bi-calendar-check"></i>
+            </div>
             <h5 className="feature-title">Easy Scheduling</h5>
-            <p className="feature-text">Book and manage appointments easily. Real-time availability updates.</p>
+            <p className="feature-text">
+              Book and manage appointments easily. Real-time availability updates.
+            </p>
           </div>
 
           <div className="feature-card">
@@ -24,7 +44,9 @@ const HomePage: React.FC = () => {
               <i className="bi bi-heart"></i>
             </div>
             <h5 className="feature-title">Patient-Centered</h5>
-            <p className="feature-text">Personalized care plans for each client's unique needs.</p>
+            <p className="feature-text">
+              Personalized care plans for each client's unique needs.
+            </p>
           </div>
 
           <div className="feature-card">
@@ -32,7 +54,9 @@ const HomePage: React.FC = () => {
               <i className="bi bi-shield-lock"></i>
             </div>
             <h5 className="feature-title">Secure & Private</h5>
-            <p className="feature-text">End-to-end encryption for all sensitive data.</p>
+            <p className="feature-text">
+              End-to-end encryption for all sensitive data.
+            </p>
           </div>
 
           <div className="feature-card">
@@ -40,18 +64,27 @@ const HomePage: React.FC = () => {
               <i className="bi bi-clock-history"></i>
             </div>
             <h5 className="feature-title">24/7 Access</h5>
-            <p className="feature-text">Access your schedule and info anytime, anywhere.</p>
+            <p className="feature-text">
+              Access your schedule and info anytime, anywhere.
+            </p>
           </div>
         </div>
 
         {/* Call-to-action buttons */}
         <div className="hero-buttons">
           <a className="scroll-down" href="#features">
-            Learn More <i className="bi bi-arrow-down"></i>
+            Learn More
           </a>
-          <Link className="cta" to="/register">
-            Get Started <i className="bi bi-arrow-right"></i>
-          </Link>
+
+          {!isAuthenticated ? (
+            <Link className="cta" to="/register">
+              Get Started
+            </Link>
+          ) : (
+            <Link className="cta" to={appHomeLink}>
+              Go to app
+            </Link>
+          )}
         </div>
       </div>
     </section>

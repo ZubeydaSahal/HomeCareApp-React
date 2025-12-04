@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Form, Button } from "react-bootstrap";
+import { Form, Button, Container, Row, Col } from "react-bootstrap";
 import { AppointmentCreatePayload } from "../../types/Appointment";
 
 interface Option {
@@ -76,12 +76,12 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({
   };
 
   return (
-    <div className={isPersonnel ? "personnel-page" : ""}>
-      <h2 className="fw-bold mb-3">New Appointment</h2>
-      <hr />
+    <Container className={`py-4 ${isPersonnel ? "personnel-page" : ""}`}>
+      <Row className="justify-content-center">
+        <Col xs={12} md={8} lg={6}>
+          <h2 className="fw-bold mb-3">New Appointment</h2>
+          <hr />
 
-      <div className="row">
-        <div className="col-md-6">
           <Form onSubmit={handleSubmit}>
             <Form.Group className="mb-3">
               <Form.Label>Available Day/Slot</Form.Label>
@@ -108,23 +108,28 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({
               />
             </Form.Group>
 
-            <Form.Group className="mb-3">
-              <Form.Label>Start</Form.Label>
-              <Form.Control
-                type="time"
-                value={startTime}
-                onChange={(e) => setStartTime(e.target.value)}
-              />
-            </Form.Group>
-
-            <Form.Group className="mb-3">
-              <Form.Label>End</Form.Label>
-              <Form.Control
-                type="time"
-                value={endTime}
-                onChange={(e) => setEndTime(e.target.value)}
-              />
-            </Form.Group>
+            <Row className="g-3">
+              <Col xs={12} md={6}>
+                <Form.Group className="mb-3">
+                  <Form.Label>Start</Form.Label>
+                  <Form.Control
+                    type="time"
+                    value={startTime}
+                    onChange={(e) => setStartTime(e.target.value)}
+                  />
+                </Form.Group>
+              </Col>
+              <Col xs={12} md={6}>
+                <Form.Group className="mb-3">
+                  <Form.Label>End</Form.Label>
+                  <Form.Control
+                    type="time"
+                    value={endTime}
+                    onChange={(e) => setEndTime(e.target.value)}
+                  />
+                </Form.Group>
+              </Col>
+            </Row>
 
             <Form.Group className="mb-3">
               <Form.Label>Status</Form.Label>
@@ -142,9 +147,9 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({
               {submitting ? "Saving..." : "Create"}
             </Button>
           </Form>
-        </div>
-      </div>
-    </div>
+        </Col>
+      </Row>
+    </Container>
   );
 };
 

@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { Spinner, Alert } from "react-bootstrap";
 import { useAuth } from "../auth/AuthContext";
 import { fetchAppointments } from "../Pages/appointments/AppointmentService";
 import { Appointment } from "../types/Appointment";
+import { Spinner, Alert, Container, Row, Col } from "react-bootstrap";
 
 const PatientDashboard: React.FC = () => {
   const { user } = useAuth();
@@ -33,7 +33,6 @@ const PatientDashboard: React.FC = () => {
 
         const upcoming = all
           .filter((a) => {
-            // Date filter
             const d = new Date(a.date);
             d.setHours(0, 0, 0, 0);
             const isFutureOrToday = d >= today;
@@ -75,8 +74,17 @@ const PatientDashboard: React.FC = () => {
     return d.getTime() === today.getTime();
   }).length;
 
+  // Unike caregivers basert på personnelName
+  const caregiverNames = Array.from(
+    new Set(
+      appointments
+        .map((a) => a.personnelName)
+        .filter((name): name is string => !!name && name.trim() !== "")
+    )
+  );
+
   return (
-    <div>
+    <Container className="py-4">
       {/* Welcome / top text */}
       <div className="mb-5">
         <h2 className="fw-bold mb-3">Welcome back, {displayName}!</h2>
@@ -91,12 +99,12 @@ const PatientDashboard: React.FC = () => {
         )}
       </div>
 
-      <div className="row g-4">
+      <Row className="g-4">
         {/* Left column – actions + upcoming appointments */}
-        <div className="col-lg-8">
+        <Col xs={12} lg={8}>
           {/* Action cards */}
-          <div className="row g-3 mb-4">
-            <div className="col-md-6">
+          <Row xs={1} md={2} className="g-3 mb-4">
+            <Col>
               <Link to="/appointments/create" className="text-decoration-none">
                 <div className="card border-1 border-dark bg-light h-100 text-center py-4">
                   <div className="card-body">
@@ -107,21 +115,8 @@ const PatientDashboard: React.FC = () => {
                   </div>
                 </div>
               </Link>
-            </div>
-
-            <div className="col-md-6">
-              <a href="#careTeam" className="text-decoration-none">
-                <div className="card border-1 border-dark bg-light h-100 text-center py-4">
-                  <div className="card-body">
-                    <i className="bi bi-envelope display-1 text-secondary mb-3"></i>
-                    <h5 className="card-title text-dark mb-0">
-                      Contact caregiver
-                    </h5>
-                  </div>
-                </div>
-              </a>
-            </div>
-          </div>
+            </Col>
+          </Row>
 
           {/* Upcoming appointments */}
           <div className="card border-1 border-dark bg-light">
@@ -152,7 +147,8 @@ const PatientDashboard: React.FC = () => {
                     No upcoming appointments scheduled.
                   </p>
                   <Link className="btn btn-primary" to="/appointments/create">
-                    <i className="bi bi-plus-circle me-2"></i>Book appointment
+                    <i className="bi bi-plus-circle me-2"></i>
+                    Book appointment
                   </Link>
                 </div>
               ) : (
@@ -164,7 +160,6 @@ const PatientDashboard: React.FC = () => {
                     >
                       <div>
                         <h5 className="mb-2 fw-semibold text-dark lh-base">
-                          {/* customize field */}
                           {a.taskDescription ?? "Home care visit"}
                         </h5>
                         <p className="mb-0 text-muted lh-lg">
@@ -194,27 +189,44 @@ const PatientDashboard: React.FC = () => {
               )}
             </div>
           </div>
-        </div>
+        </Col>
 
-        {/* Right column – CareTeam (still static/dummy) */}
-        <div className="col-lg-4">
-          <div
-            className="card border-1 border-dark bg-light h-100"
-            id="careTeam"
-          >
+        {/* Right column – CareTeam */}
+        <Col xs={12} lg={4}>
+          <div className="card border-1 border-dark bg-light h-100" id="careTeam">
             <div className="card-body p-4">
               <h5 className="fw-bold mb-4 text-dark">My Care Team</h5>
-              <div className="text-center py-4">
-                <i className="bi bi-people display-4 text-muted mb-3 d-block"></i>
-                <p className="text-muted mb-0 small">
-                  No caregivers currently available.
-                </p>
-              </div>
+
+              {caregiverNames.length === 0 ? (
+                <div className="text-center py-4">
+                  <i className="bi bi-people display-4 text-muted mb-3 d-block"></i>
+                  <p className="text-muted mb-0 small">
+                    No caregivers currently available.
+                  </p>
+                </div>
+              ) : (
+                <div>
+                  <p className="text-muted small mb-3">
+                    You are currently assigned to:
+                  </p>
+                  <ul className="list-unstyled mb-0">
+                    {caregiverNames.map((name) => (
+                      <li
+                        key={name}
+                        className="mb-2 d-flex align-items-center"
+                      >
+                        <i className="bi bi-person-circle me-2 text-secondary"></i>
+                        <span>{name}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
             </div>
           </div>
-        </div>
-      </div>
-    </div>
+        </Col>
+      </Row>
+    </Container>
   );
 };
 

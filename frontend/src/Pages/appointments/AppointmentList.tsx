@@ -2,7 +2,13 @@ import React, { useEffect, useState } from "react";
 import { fetchAppointments, deleteAppointment } from "./AppointmentService";
 import { Appointment } from "../../types/Appointment";
 import AppointmentTable from "./AppointmentTable";
-import { Modal, Button, Alert, Spinner } from "react-bootstrap";
+import {
+  Modal,
+  Button,
+  Alert,
+  Spinner,
+  Container,
+} from "react-bootstrap";
 
 const AppointmentList: React.FC = () => {
   const [appointments, setAppointments] = useState<Appointment[]>([]);
@@ -60,13 +66,16 @@ const AppointmentList: React.FC = () => {
 
   if (loading)
     return (
-      <div className="mt-3">
-        <Spinner animation="border" role="status" /> Loading appointments...
-      </div>
+      <Container className="py-4">
+        <div className="d-flex align-items-center gap-2">
+          <Spinner animation="border" role="status" />
+          <span>Loading appointments...</span>
+        </div>
+      </Container>
     );
 
   return (
-    <div>
+    <Container className="py-4">
       <h2 className="fw-bold mb-3">Appointments</h2>
 
       {error && (
@@ -78,10 +87,13 @@ const AppointmentList: React.FC = () => {
       {appointments.length === 0 ? (
         <p>No appointments found.</p>
       ) : (
-        <AppointmentTable
-          appointments={appointments}
-          onDelete={handleRequestDelete}
-        />
+        // Gjør tabellen responsiv på små skjermer
+        <div className="table-responsive">
+          <AppointmentTable
+            appointments={appointments}
+            onDelete={handleRequestDelete}
+          />
+        </div>
       )}
 
       {/* Confirmation modal */}
@@ -131,7 +143,7 @@ const AppointmentList: React.FC = () => {
           </Button>
         </Modal.Footer>
       </Modal>
-    </div>
+    </Container>
   );
 };
 

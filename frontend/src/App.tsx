@@ -26,8 +26,10 @@ import { AuthProvider } from "./auth/AuthContext";
 import DashboardPage from "./dashboard/DashboardPage";
 
 // Admin-sider
-import AdminPatientsPage from "./admin/AdminPatientsPage";
-import AdminPersonnelPage from "./admin/AdminPersonnelPage";
+import AdminUsersPage from "./admin/AdminUserPage";
+import PersonnelDashboard from "./dashboard/PersonnelDashboard";
+import PatientDashboard from "./dashboard/PatientDashboard";
+import AdminDashboard from "./dashboard/AdminDashboardPage";
 
 import "./App.css";
 
@@ -40,17 +42,21 @@ const AppContent: React.FC = () => {
       {!hideNavbar && <NavMenu />}
       <div className="app-content">
         <Routes>
-          {/* Offentlige sider */}
+          {/* Public pages */}
           <Route path="/" element={<HomePage />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
 
-          {/* Alt inni ProtectedRoute krever innlogging */}
+          {/* You must be logged in to view these pages*/}
           <Route element={<ProtectedRoute />}>
-            {/* Dashboard for alle innloggede (velger selv Patient/Personnel/Admin) */}
+            {/* Dashboard */}
             <Route path="/dashboard" element={<DashboardPage />} />
+            <Route path="/personnel/dashboard" element={<PersonnelDashboard />} />  
+            <Route path="/patient/dashboard" element={<PatientDashboard />} />
+            <Route path="/admin/dashboard" element={<AdminDashboard />} />
 
-            {/* Availability – kun synlig i meny for Personnel/Admin */}
+
+            {/* Availability */}
             <Route path="/availability" element={<AvailabilityListPage />} />
             <Route
               path="/availability/create"
@@ -61,7 +67,7 @@ const AppContent: React.FC = () => {
               element={<AvailbilityUpdate />}
             />
 
-            {/* Appointments – for innloggede brukere */}
+            {/* Appointments – for user that is logged in */}
             <Route path="/appointments" element={<AppointmentListPage />} />
             <Route
               path="/appointments/create"
@@ -72,9 +78,9 @@ const AppContent: React.FC = () => {
               element={<AppointmentUpdatePage />}
             />
 
-            {/* Admin-sider – komponentene sjekker selv at user.role === "Admin" */}
-            <Route path="/admin" element={<AdminPatientsPage />} />
-            <Route path="/admin/personnel" element={<AdminPersonnelPage />} />
+            {/* Admin-side */}
+            <Route path="/admin" element={<AdminUsersPage />} />
+
           </Route>
 
           {/* Fallback */}

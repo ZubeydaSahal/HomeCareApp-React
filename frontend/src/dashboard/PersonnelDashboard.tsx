@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
-import { Spinner, Alert } from "react-bootstrap";
+import { Spinner, Alert, Container, Row, Col } from "react-bootstrap";
+import { Link } from "react-router-dom";
 import { useAuth } from "../auth/AuthContext";
 import { fetchAppointments } from "../Pages/appointments/AppointmentService";
 import { Appointment } from "../types/Appointment";
@@ -55,6 +56,12 @@ const PersonnelDashboard: React.FC = () => {
   const today = new Date();
   today.setHours(0, 0, 0, 0);
 
+  const parseDate = (iso: string) => {
+    const d = new Date(iso);
+    d.setHours(0, 0, 0, 0);
+    return d;
+  };
+
   // Start/end of this week (Monday–Sunday)
   const startOfWeek = new Date(today);
   const day = today.getDay(); // 0 = Sunday, 1 = Monday, ...
@@ -65,12 +72,6 @@ const PersonnelDashboard: React.FC = () => {
   const endOfWeek = new Date(startOfWeek);
   endOfWeek.setDate(startOfWeek.getDate() + 6);
   endOfWeek.setHours(23, 59, 59, 999);
-
-  const parseDate = (iso: string) => {
-    const d = new Date(iso);
-    d.setHours(0, 0, 0, 0);
-    return d;
-  };
 
   // Number of different patients (clientId or clientName)
   const uniquePatients = new Set(
@@ -115,19 +116,42 @@ const PersonnelDashboard: React.FC = () => {
       return ta.localeCompare(tb);
     });
 
+  // Recent completed appointments (uten notes)
+  const recentCompleted = appointments
+    .filter((a) => {
+      const d = parseDate(a.date);
+      return d <= today && a.status === "Completed";
+    })
+    .sort((a, b) => {
+      const da = new Date(a.date).getTime();
+      const db = new Date(b.date).getTime();
+      return db - da; // nyeste først
+    })
+    .slice(0, 5);
+
   return (
-    <div className="personnel-page">
+    <Container className="py-4 personnel-page">
       {/* Welcome / topsection */}
-      <div className="mb-4">
-        <h2 className="fw-bold mb-2">Welcome back, {displayName}!</h2>
-        <p className="text-muted mb-0">
-          Here's an overview of your schedule and patients
-        </p>
+      <div className="mb-4 d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
+        <div>
+          <h2 className="fw-bold mb-2">Welcome back, {displayName}!</h2>
+          <p className="text-muted mb-0">
+            Here's an overview of your schedule and patients
+          </p>
+        </div>
+
+        {/* NY knapp for availability */}
+        <div>
+          <Link to="/availability/create" className="btn btn-primary">
+            <i className="bi bi-calendar-plus me-2"></i>
+            Add availability
+          </Link>
+        </div>
       </div>
 
       {/* Quick stats */}
-      <div className="row g-3 mb-4">
-        <div className="col-md-3">
+      <Row className="g-3 mb-4" xs={1} sm={2} lg={4}>
+        <Col>
           <div className="card border-1 border-dark bg-light bg-gradient h-100">
             <div className="card-body p-4 text-dark d-flex justify-content-between align-items-center">
               <div>
@@ -137,9 +161,9 @@ const PersonnelDashboard: React.FC = () => {
               <i className="bi bi-people-fill fs-1 opacity-75"></i>
             </div>
           </div>
-        </div>
+        </Col>
 
-        <div className="col-md-3">
+        <Col>
           <div className="card border-1 border-dark bg-light bg-gradient h-100">
             <div className="card-body p-4 text-dark d-flex justify-content-between align-items-center">
               <div>
@@ -149,9 +173,9 @@ const PersonnelDashboard: React.FC = () => {
               <i className="bi bi-calendar-check-fill fs-1 opacity-75"></i>
             </div>
           </div>
-        </div>
+        </Col>
 
-        <div className="col-md-3">
+        <Col>
           <div className="card border-1 border-dark bg-light bg-gradient h-100">
             <div className="card-body p-4 text-dark d-flex justify-content-between align-items-center">
               <div>
@@ -161,9 +185,9 @@ const PersonnelDashboard: React.FC = () => {
               <i className="bi bi-clock-fill fs-1 opacity-75"></i>
             </div>
           </div>
-        </div>
+        </Col>
 
-        <div className="col-md-3">
+        <Col>
           <div className="card border-1 border-dark bg-light bg-gradient h-100">
             <div className="card-body p-4 text-dark d-flex justify-content-between align-items-center">
               <div>
@@ -173,12 +197,12 @@ const PersonnelDashboard: React.FC = () => {
               <i className="bi bi-x-circle-fill fs-1 opacity-75"></i>
             </div>
           </div>
-        </div>
-      </div>
+        </Col>
+      </Row>
 
-      {/* Main content: Upcoming appointments */}
-      <div className="row g-4 mb-4">
-        <div className="col-md-7">
+      {/* Main content: Upcoming appointments + Recent activity */}
+      <Row className="g-4 mb-4">
+        <Col xs={12} lg={7}>
           <div className="card border bg-light h-100">
             <div className="card-body p-4">
               <h5 className="fw-bold mb-4 text-dark">Upcoming Appointments</h5>
@@ -246,20 +270,45 @@ const PersonnelDashboard: React.FC = () => {
               )}
             </div>
           </div>
-        </div>
+        </Col>
 
-        <div className="col-md-5">
+        <Col xs={12} lg={5}>
           <div className="card border bg-light h-100">
             <div className="card-body p-4">
               <h5 className="fw-bold mb-4 text-dark">Recent Activity</h5>
-              <p className="text-muted mb-0">
-                You can later show completed appointments or notes here.
-              </p>
+
+              {recentCompleted.length === 0 ? (
+                <p className="text-muted mb-0">
+                  No recently completed appointments.
+                </p>
+              ) : (
+                <div className="vstack gap-3">
+                  {recentCompleted.map((a) => (
+                    <div key={a.id} className="bg-white border rounded p-3">
+                      <div className="d-flex justify-content-between mb-1">
+                        <span className="fw-semibold">
+                          {a.clientName ?? "Unnamed patient"}
+                        </span>
+                        <span className="text-muted small">
+                          {new Date(a.date).toLocaleDateString("nb-NO")}{" "}
+                          {a.startTime?.slice(0, 5)}
+                        </span>
+                      </div>
+                      <p className="mb-1 text-muted small">
+                        {a.taskDescription ?? "Home care visit"}
+                      </p>
+                      <p className="mb-0 text-muted small">
+                        Status: {a.status}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
-        </div>
-      </div>
-    </div>
+        </Col>
+      </Row>
+    </Container>
   );
 };
 
